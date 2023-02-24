@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Welcome to Seproamérica! {{name}}</title>
+  </head>
+  <body>
+    <h1>Welcome to Seproamérica,!</h1>
+    <a href="{{ HOST_URL }}{% url 'verification' token=verification_token %}">Click here to verify your email</a>
+  </body>
+</html>

@@ -28,6 +28,8 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+HOST_URL = 'http://127.0.0.1:8000'
+
 ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -131,3 +133,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#sengrid configuration
+EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+SENDGRID_API_KEY = env('SENGRID_API_KEY')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+SENDGRID_SANDBOX_MODE_IN_DEBUG=False
