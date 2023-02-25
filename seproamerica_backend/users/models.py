@@ -27,7 +27,7 @@ class Charge(models.Model):
         ('A', 'Administrative'),
         ('O', 'Operative')
     ]
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     description = models.TextField()
     type = models.CharField(max_length=1, choices=TYPE_CHOICES)
 
@@ -38,8 +38,8 @@ class AdministrativeStaff(models.Model):
         ('V', 'Vacaciones')
     ]
 
-    start_date = models.DateField()
-    final_date = models.DateField()
+    start_date = models.DateField(default=date.today)
+    final_date = models.DateField(default=date.today)
     branch = models.CharField(max_length=50)
     charge = models.ForeignKey(Charge, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='A')
