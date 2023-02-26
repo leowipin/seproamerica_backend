@@ -1,18 +1,25 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer
 from rest_framework import status
 from .models import VerificationToken
 from django.template.loader import render_to_string
 from seproamerica_backend import settings
 from django.core.mail import EmailMessage
 import secrets
+import datetime
+from datetime import timedelta
+from users.authentication import JWTAuthentication, HasRequiredPermissions
+from django.db import transaction
+from users.utils import generate_token
+
 
 class SignUpView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SignUpSerializer(data=request.data, context={'group_name': 'client'})
         if serializer.is_valid():
             user = serializer.save()
+            
             # generate verification token
             verification_token = secrets.token_hex(16)
 
@@ -38,9 +45,56 @@ class SignUpView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ClientSignInView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SignInSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+
+        if not user.isVerified:
+            return Response({'message': 'Account not verified'}, status=status.HTTP_403_FORBIDDEN)
+        
+        token = generate_token(user)
+
+        return Response({
+            "token": token
+        }, status=status.HTTP_200_OK)
+    
+    
+class AdminSignInView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SignInSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        
+        token = generate_token(user)
+
+        return Response({
+            "token": token
+        }, status=status.HTTP_200_OK)
+    
+    
+class OperationalSignInView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SignInSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        
+        token = generate_token(user)
+
+        return Response({
+            "token": token
+        }, status=status.HTTP_200_OK)
+    
+
 class AdminCreateView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['add_customuser','change_customuser','delete_customuser','view_customuser','add_administrativestaff','change_administrativestaff','delete_administrativestaff','view_administrativestaff']
+    
+    @transaction.atomic()
     def post(self, request):
-        userSerializer = SignUpSerializer(data = request.data, context={'group_name': 'superadmin'})
+        userSerializer = SignUpSerializer(data = request.data, context={'group_name': request.data.get('group')})
         if userSerializer.is_valid():
             user = userSerializer.save()
             user.is_staff = True
@@ -53,6 +107,31 @@ class AdminCreateView(APIView):
                 return Response({'message': 'Usuario creado con éxito'}, status=status.HTTP_200_OK)
             else:
                 return Response(adminSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(userSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class OperationalCreateView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['add_customuser','change_customuser','delete_customuser','view_customuser','add_operationalstaff','change_operationalstaff','delete_operationalstaff','view_operationalstaff']
+    
+    @transaction.atomic()
+    def post(self, request):
+        userSerializer = SignUpSerializer(data = request.data, context={'group_name': request.data.get('group')})
+        if userSerializer.is_valid():
+            user = userSerializer.save()
+            user.is_staff = True
+            user.save()
+            request.data['user'] = user.id
+            request.data['created_by'] = request.user
+            operationalSerializer = OperationalStaffSerializer(data=request.data)
+            if operationalSerializer.is_valid():
+                opUser = operationalSerializer.save()
+                opUser.save()
+                return Response({'message': 'Usuario creado con éxito'}, status=status.HTTP_200_OK)
+            else:
+                return Response(operationalSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(userSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,6 +149,9 @@ class VerifyEmail(APIView):
             return Response({'message': 'Verificación fallida'}, status=status.HTTP_400_BAD_REQUEST)
         
 class GroupView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['add_group','change_group','delete_group','view_group']
     def post(self, request):
         serializer = GroupSerializer(data=request.data)
         if serializer.is_valid():

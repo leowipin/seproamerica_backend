@@ -52,12 +52,12 @@ class OperationalStaff(models.Model):
         ('V', 'Vacaciones')
     ]
 
-    start_date = models.DateField()
-    final_date = models.DateField()
+    start_date = models.DateField(default=date.today)
+    final_date = models.DateField(default=date.today)
     charge = models.ForeignKey(Charge, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='A')
     branch = models.CharField(max_length=50)
-    created_by = models.ForeignKey(AdministrativeStaff, on_delete=models.SET_NULL, null=True, blank=True, related_name='administrative_staffs_created')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='administrative_staffs_created')
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 class VerificationToken(models.Model):
