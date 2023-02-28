@@ -78,6 +78,13 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Cliente
         fields = ('id', 'email', 'username', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined')
 
+
+class ClientSignUpSerializer(serializers.ModelSerializer):
+     
+     class Meta:
+        model = Cliente
+        fields = '__all__'
+
         
 class AdminStaffSerializer(serializers.ModelSerializer):
     charge = serializers.SlugRelatedField(queryset=Cargo.objects.all(), slug_field='name', write_only=True)

@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo
 from rest_framework import status
 from .models import TokenVerificacion
@@ -24,7 +24,7 @@ class SignUpView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             request.data['user'] = user.id
-            clientSerializer = ClientSerializer(data = request.data)
+            clientSerializer = ClientSignUpSerializer(data = request.data)
             if clientSerializer.is_valid():
                 clientUser = clientSerializer.save()
                 clientUser.save()
