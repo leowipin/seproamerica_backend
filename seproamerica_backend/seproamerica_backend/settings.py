@@ -37,7 +37,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
 ]
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'users.usuario'
 
 # Application definition
 

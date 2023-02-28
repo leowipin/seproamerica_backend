@@ -3,9 +3,11 @@ from django.contrib.auth.models import AbstractUser
 from datetime import date
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.auth.models import Group
 
 
-class CustomUser(AbstractUser):
+
+class Usuario(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=False)
     dni = models.CharField(max_length=20, unique=True)
@@ -22,7 +24,11 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
-class Charge(models.Model):
+class Cliente(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    
+
+class Cargo(models.Model):
     TYPE_CHOICES = [
         ('A', 'Administrative'),
         ('O', 'Operative')
@@ -31,7 +37,11 @@ class Charge(models.Model):
     description = models.TextField()
     type = models.CharField(max_length=1, choices=TYPE_CHOICES)
 
-class AdministrativeStaff(models.Model):
+class Sucursal(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    address = models.CharField(max_length=200)
+
+class PersonalAdministrativo(models.Model):
     STATUS_CHOICES = [
         ('A', 'Activo'),
         ('I', 'Inactivo'),
@@ -40,12 +50,12 @@ class AdministrativeStaff(models.Model):
 
     start_date = models.DateField(default=date.today)
     final_date = models.DateField(default=date.today)
-    branch = models.CharField(max_length=50)
-    charge = models.ForeignKey(Charge, on_delete=models.SET_NULL, null=True, blank=True)
+    branch = models.ForeignKey(Sucursal, on_delete=models.SET_NULL, null=True, blank=True)
+    charge = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='A')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-class OperationalStaff(models.Model):
+class PersonalOperativo(models.Model):
     STATUS_CHOICES = [
         ('A', 'Activo'),
         ('I', 'Inactivo'),
@@ -54,14 +64,14 @@ class OperationalStaff(models.Model):
 
     start_date = models.DateField(default=date.today)
     final_date = models.DateField(default=date.today)
-    charge = models.ForeignKey(Charge, on_delete=models.SET_NULL, null=True, blank=True)
+    charge = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='A')
-    branch = models.CharField(max_length=50)
+    branch = models.ForeignKey(Sucursal, on_delete=models.SET_NULL, null=True, blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='administrative_staffs_created')
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-class VerificationToken(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+class TokenVerificacion(models.Model):
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     token = models.CharField(max_length=32, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expiry_date = models.DateTimeField()

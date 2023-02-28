@@ -1,8 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo
 from rest_framework import status
-from .models import VerificationToken
+from .models import TokenVerificacion
 from django.template.loader import render_to_string
 from seproamerica_backend import settings
 from django.core.mail import EmailMessage
@@ -11,37 +12,47 @@ import datetime
 from datetime import timedelta
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from users.utils import generate_token
+from users.utils import generate_token, perms_englishtospanish, perms_spanishtoenglish
+from django.contrib.auth.models import Permission, Group
+from django.contrib.contenttypes.models import ContentType
 
 
 class SignUpView(APIView):
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
-        serializer = SignUpSerializer(data=request.data, context={'group_name': 'client'})
+        serializer = SignUpSerializer(data=request.data, context={'group_name': 'cliente'})
         if serializer.is_valid():
             user = serializer.save()
-            
-            # generate verification token
-            verification_token = secrets.token_hex(16)
+            request.data['user'] = user.id
+            clientSerializer = ClientSerializer(data = request.data)
+            if clientSerializer.is_valid():
+                clientUser = clientSerializer.save()
+                clientUser.save()
 
-            # save verification token to database
-            VerificationToken.objects.create(user=user, token=verification_token)
+                 # generate verification token
+                verification_token = secrets.token_hex(16)
 
-            # send verification email
-            context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
-            html_content = render_to_string('signupEmail.html', context)
-            subject = 'Welcome to Seproamérica!'
-            from_email = settings.DEFAULT_FROM_EMAIL
-            to = [user.email]
-            email = EmailMessage(subject, html_content, from_email, to)
-            email.content_subtype = 'html'
+                # save verification token to database
+                TokenVerificacion.objects.create(user=user, token=verification_token)
 
-            try:
-                email.send()
-            except Exception as e:
-                print(e)
-                return Response({'message': 'Error al enviar el email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            user.save()
-            return Response('message: Email de verificación enviado', status=status.HTTP_200_OK)
+                # send verification email
+                context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
+                html_content = render_to_string('signupEmail.html', context)
+                subject = 'Welcome to Seproamérica!'
+                from_email = settings.DEFAULT_FROM_EMAIL
+                to = [user.email]
+                email = EmailMessage(subject, html_content, from_email, to)
+                email.content_subtype = 'html'
+
+                try:
+                    email.send()
+                except Exception as e:
+                    print(e)
+                    return Response({'message': 'Error al enviar el email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                user.save()
+                return Response('message: Email de verificación enviado', status=status.HTTP_200_OK)
+            else:
+                return Response(clientSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -60,6 +71,19 @@ class ClientSignInView(APIView):
             "token": token
         }, status=status.HTTP_200_OK)
     
+class ClientView(APIView): # view for the actions that the client can perform for their own data
+    pass
+
+class ClientListView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_cliente']
+
+    def get(self, request):
+        clients = Usuario.objects.filter(is_staff=False)
+        serializer = UserSerializer(clients, many=True)
+        return Response(serializer.data)
+
     
 class AdminSignInView(APIView):
     def post(self, request, *args, **kwargs):
@@ -87,10 +111,10 @@ class OperationalSignInView(APIView):
         }, status=status.HTTP_200_OK)
     
 
-class AdminCreateView(APIView):
+class AdminView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ['add_customuser','change_customuser','delete_customuser','view_customuser','add_administrativestaff','change_administrativestaff','delete_administrativestaff','view_administrativestaff']
+    required_permissions = ["add_personaladministrativo","change_personaladministrativo","delete_personaladministrativo","view_personaladministrativo",]
     
     @transaction.atomic()
     def post(self, request):
@@ -109,12 +133,49 @@ class AdminCreateView(APIView):
                 return Response(adminSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(userSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request):
+        user_id = request.GET.get('id')
+        try:
+            adminstaff = PersonalAdministrativo.objects.select_related('user').get(user_id=user_id)
+            serializer = AdminInfoSerializer(adminstaff)
+            return Response(serializer.data)
+        except Cliente.DoesNotExist:
+            return Response({'message': f'Usuario con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
         
-        
-class OperationalCreateView(APIView):
+class AdminListView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ['add_customuser','change_customuser','delete_customuser','view_customuser','add_operationalstaff','change_operationalstaff','delete_operationalstaff','view_operationalstaff']
+    required_permissions = ['view_personaladministrativo']
+
+    def get(self, request):
+        admins = PersonalAdministrativo.objects.all()
+        users_admins = Usuario.objects.filter(personaladministrativo__in=admins)
+        serializer = UserSerializer(users_admins, many=True)
+        return Response(serializer.data)
+        
+class AdminClientView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_cliente','delete_cliente']
+
+    def get(self, request):
+        user_id = request.GET.get('id')
+        try:
+            client = Cliente.objects.select_related('user').get(user_id=user_id)
+            serializer = ClientSerializer(client)
+            return Response(serializer.data)
+        except Cliente.DoesNotExist:
+            return Response({'message': f'Usuario con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request):
+        pass
+        
+        
+class OperationalView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_personaloperativo","change_personaloperativo","delete_personaloperativo","view_personaloperativo",]
     
     @transaction.atomic()
     def post(self, request):
@@ -134,25 +195,56 @@ class OperationalCreateView(APIView):
                 return Response(operationalSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(userSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def get(self, request):
+        user_id = request.GET.get('id')
+        try:
+            opstaff = PersonalOperativo.objects.select_related('user').get(user_id=user_id)
+            serializer = OperationalInfoSerializer(opstaff)
+            return Response(serializer.data)
+        except PersonalOperativo.DoesNotExist:
+            return Response({'message': f'Personal operativo con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class OperationalListView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_personaloperativo']
+
+    def get(self, request):
+        ops = PersonalOperativo.objects.all()
+        users_op = Usuario.objects.filter(personaloperativo__in=ops)
+        serializer = UserSerializer(users_op, many=True)
+        return Response(serializer.data)
 
 
 class VerifyEmail(APIView):
     def get(self, request, token):
         try:
-            verification_token = VerificationToken.objects.get(token=token)
+            verification_token = TokenVerificacion.objects.get(token=token)
             user = verification_token.user
             user.isVerified = True
             user.save()
             verification_token.delete()
             return Response({'message': 'Verificación exitosa'}, status=status.HTTP_200_OK)
-        except VerificationToken.DoesNotExist:
+        except TokenVerificacion.DoesNotExist:
             return Response({'message': 'Verificación fallida'}, status=status.HTTP_400_BAD_REQUEST)
         
 class GroupView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ['add_group','change_group','delete_group','view_group']
+    required_permissions = ['add_group','change_group','delete_group']
     def post(self, request):
+        permissions = request.data['permissions']
+        for i in range(len(permissions)):
+            codename = perms_spanishtoenglish(permissions[i])
+            permissions[i] = codename
+
+        group_type = request.data['group_type']
+        if group_type == 'admin':
+            request.data['name'] = "admin_" + request.data['name']
+        elif group_type == 'op':
+            request.data['name'] = "op_" + request.data['name']
         serializer = GroupSerializer(data=request.data)
         if serializer.is_valid():
             group = serializer.save()
@@ -160,3 +252,64 @@ class GroupView(APIView):
             return Response({'message': 'Group created successfully'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def get(self, request):
+        group_name = request.GET.get('name')
+
+        if not group_name:
+            return Response({'message': 'Nombre del grupo no enviado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            group = Group.objects.get(name=group_name)
+        except Group.DoesNotExist:
+            return Response({'message': 'Grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = GroupSerializer(group)
+        permissions = serializer.data['permissions']
+        for i in range(len(permissions)):
+            codename = perms_englishtospanish(permissions[i])
+            permissions[i] = codename
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class GroupListView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_group']
+
+    def get(self, request):
+        groups = Group.objects.values_list('name', flat=True)
+        return Response({"groups": list(groups)})
+        
+
+class AdminGroupList(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_group'] 
+
+    def get(self, request):
+        groups = Group.objects.filter(name__contains='admin').values_list('name', flat=True)
+        return Response({"groups": list(groups)})
+
+class OperationalGroupList(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_group'] 
+
+    def get(self, request):
+        groups = Group.objects.filter(name__contains='op').values_list('name', flat=True)
+        return Response({"groups": list(groups)})
+        
+class PermissionsView(APIView):
+    def get(self, request):
+        content_types = ContentType.objects.filter(app_label__in=['users', 'auth']).exclude(model__in=['tokenverificacion', 'permission'])
+        permissions = []
+        for content_type in content_types:
+            content_type_permissions = Permission.objects.filter(content_type=content_type)
+            codenames = []
+            for p in content_type_permissions:
+                codename = perms_englishtospanish(p.codename)
+                codenames.append(codename)
+            permissions.extend(codenames)
+        
+        return Response({'permissions': permissions})
