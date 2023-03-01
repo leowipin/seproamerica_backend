@@ -29,13 +29,15 @@ JWT_SECRET_KEY = env('JWT_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-HOST_URL = 'http://127.0.0.1:8000'
+HOST_URL = 'seproamerica2022.pythonanywhere.com'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['seproamerica2022.pythonanywhere.com']
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-]
+CORS_ORIGIN_ALLOW_ALL = True
+
+#CORS_ALLOWED_ORIGINS = [
+ #   "http://localhost:4200",
+#]
 
 AUTH_USER_MODEL = 'users.usuario'
 

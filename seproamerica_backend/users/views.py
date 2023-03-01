@@ -50,7 +50,7 @@ class SignUpView(APIView):
                     print(e)
                     return Response({'message': 'Error al enviar el email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 user.save()
-                return Response('message: Email de verificación enviado', status=status.HTTP_200_OK)
+                return Response({'message: Email de verificación enviado'}, status=status.HTTP_200_OK)
             else:
                 return Response(clientSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -64,13 +64,13 @@ class ClientSignInView(APIView):
 
         if not user.isVerified:
             return Response({'message': 'Account not verified'}, status=status.HTTP_403_FORBIDDEN)
-        
+
         token = generate_token(user)
 
         return Response({
             "token": token
         }, status=status.HTTP_200_OK)
-    
+
 class ClientView(APIView): # view for the actions that the client can perform for their own data
     pass
 
@@ -84,38 +84,44 @@ class ClientListView(APIView):
         serializer = UserSerializer(clients, many=True)
         return Response(serializer.data)
 
-    
+
 class AdminSignInView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SignInSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
-        
+
+        if not user.is_staff:
+            return Response({'message':'No tiene cuenta de administrador'}, status=status.HTTP_403_FORBIDDEN)
+
         token = generate_token(user)
 
         return Response({
             "token": token
         }, status=status.HTTP_200_OK)
-    
-    
+
+
 class OperationalSignInView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = SignInSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
-        
+
         token = generate_token(user)
+
+        if not user.is_staff:
+            return Response({'message':'No tiene cuenta de personal operativo'}, status=status.HTTP_403_FORBIDDEN)
 
         return Response({
             "token": token
         }, status=status.HTTP_200_OK)
-    
+
 
 class AdminView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["add_personaladministrativo","change_personaladministrativo","delete_personaladministrativo","view_personaladministrativo",]
-    
+
     @transaction.atomic()
     def post(self, request):
         userSerializer = SignUpSerializer(data = request.data, context={'group_name': request.data.get('group')})
@@ -133,7 +139,7 @@ class AdminView(APIView):
                 return Response(adminSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(userSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def get(self, request):
         user_id = request.GET.get('id')
         try:
@@ -142,7 +148,7 @@ class AdminView(APIView):
             return Response(serializer.data)
         except Cliente.DoesNotExist:
             return Response({'message': f'Usuario con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
-        
+
 class AdminListView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -153,7 +159,7 @@ class AdminListView(APIView):
         users_admins = Usuario.objects.filter(personaladministrativo__in=admins)
         serializer = UserSerializer(users_admins, many=True)
         return Response(serializer.data)
-        
+
 class AdminClientView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -170,13 +176,13 @@ class AdminClientView(APIView):
 
     def delete(self, request):
         pass
-        
-        
+
+
 class OperationalView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["add_personaloperativo","change_personaloperativo","delete_personaloperativo","view_personaloperativo",]
-    
+
     @transaction.atomic()
     def post(self, request):
         userSerializer = SignUpSerializer(data = request.data, context={'group_name': request.data.get('group')})
@@ -195,7 +201,7 @@ class OperationalView(APIView):
                 return Response(operationalSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(userSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
     def get(self, request):
         user_id = request.GET.get('id')
         try:
@@ -204,7 +210,7 @@ class OperationalView(APIView):
             return Response(serializer.data)
         except PersonalOperativo.DoesNotExist:
             return Response({'message': f'Personal operativo con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
-        
+
 
 class OperationalListView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -229,7 +235,7 @@ class VerifyEmail(APIView):
             return Response({'message': 'Verificación exitosa'}, status=status.HTTP_200_OK)
         except TokenVerificacion.DoesNotExist:
             return Response({'message': 'Verificación fallida'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 class GroupView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -252,7 +258,7 @@ class GroupView(APIView):
             return Response({'message': 'Group created successfully'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
     def get(self, request):
         group_name = request.GET.get('name')
 
@@ -271,7 +277,7 @@ class GroupView(APIView):
             permissions[i] = codename
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 class GroupListView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -280,12 +286,12 @@ class GroupListView(APIView):
     def get(self, request):
         groups = Group.objects.values_list('name', flat=True)
         return Response({"groups": list(groups)})
-        
+
 
 class AdminGroupList(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ['view_group'] 
+    required_permissions = ['view_group']
 
     def get(self, request):
         groups = Group.objects.filter(name__contains='admin').values_list('name', flat=True)
@@ -294,12 +300,12 @@ class AdminGroupList(APIView):
 class OperationalGroupList(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ['view_group'] 
+    required_permissions = ['view_group']
 
     def get(self, request):
         groups = Group.objects.filter(name__contains='op').values_list('name', flat=True)
         return Response({"groups": list(groups)})
-        
+
 class PermissionsView(APIView):
     def get(self, request):
         content_types = ContentType.objects.filter(app_label__in=['users', 'auth']).exclude(model__in=['tokenverificacion', 'permission'])
@@ -311,5 +317,5 @@ class PermissionsView(APIView):
                 codename = perms_englishtospanish(p.codename)
                 codenames.append(codename)
             permissions.extend(codenames)
-        
+
         return Response({'permissions': permissions})
