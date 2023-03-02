@@ -50,7 +50,7 @@ class SignUpView(APIView):
                     print(e)
                     return Response({'message': 'Error al enviar el email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 user.save()
-                return Response({'message: Email de verificación enviado'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Email de verificación enviado'}, status=status.HTTP_200_OK)
             else:
                 return Response(clientSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
