@@ -5,6 +5,8 @@ from rest_framework.exceptions import AuthenticationFailed
 from seproamerica_backend import settings
 from django.contrib.auth import get_user_model
 from users.utils import get_token
+from django.contrib.auth.models import Permission, Group
+from users.models import Usuario
 
 User = get_user_model()
 
@@ -41,8 +43,14 @@ class HasRequiredPermissions(BasePermission):
         
         try:
             payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=['HS256'])
-            permissions = payload.get('user_permissions')
-            required_permissions = view.required_permissions
-            return all(permission in permissions for permission in required_permissions)
+            permissionsToken = payload.get('user_permissions')
+            user_id = payload.get('user_id')
+            user = Usuario.objects.get(id=user_id)
+            group = user.groups.first()
+            perms = Permission.objects.filter(group=group)
+            permissionsDB = [p.codename for p in perms]
+            if permissionsDB == permissionsToken:
+                required_permissions = view.required_permissions
+                return all(permission in permissionsToken for permission in required_permissions)
         except (jwt.InvalidTokenError, AttributeError):
             return False

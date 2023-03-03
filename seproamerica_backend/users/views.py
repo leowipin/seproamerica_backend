@@ -95,7 +95,6 @@ class AdminSignInView(APIView):
             return Response({'message':'No tiene cuenta de administrador'}, status=status.HTTP_403_FORBIDDEN)
 
         token = generate_token(user)
-
         return Response({
             "token": token
         }, status=status.HTTP_200_OK)
@@ -307,6 +306,9 @@ class OperationalGroupList(APIView):
         return Response({"groups": list(groups)})
 
 class PermissionsView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_group']
     def get(self, request):
         content_types = ContentType.objects.filter(app_label__in=['users', 'auth']).exclude(model__in=['tokenverificacion', 'permission'])
         permissions = []

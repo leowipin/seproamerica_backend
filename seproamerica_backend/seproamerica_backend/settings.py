@@ -31,7 +31,7 @@ DEBUG = True
 
 HOST_URL = 'seproamerica2022.pythonanywhere.com'
 
-ALLOWED_HOSTS = ['seproamerica2022.pythonanywhere.com']
+ALLOWED_HOSTS = ['seproamerica2022.pythonanywhere.com', '127.0.0.1' ]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
