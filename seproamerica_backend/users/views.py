@@ -8,8 +8,7 @@ from django.template.loader import render_to_string
 from seproamerica_backend import settings
 from django.core.mail import EmailMessage
 import secrets
-import datetime
-from datetime import timedelta
+from django.shortcuts import render
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
 from users.utils import generate_token, perms_englishtospanish, perms_spanishtoenglish
@@ -231,9 +230,11 @@ class VerifyEmail(APIView):
             user.isVerified = True
             user.save()
             verification_token.delete()
-            return Response({'message': 'Verificación exitosa'}, status=status.HTTP_200_OK)
+            context = {'verification_successful': True, 'message': 'Verificación exitosa'}
+            return render(request, 'verificationResult.html', context)
         except TokenVerificacion.DoesNotExist:
-            return Response({'message': 'Verificación fallida'}, status=status.HTTP_400_BAD_REQUEST)
+            context = {'verification_successful': False, 'message': 'Verificación fallida'}
+            return render(request, 'verificationResult.html', context)
 
 class GroupView(APIView):
     authentication_classes = [JWTAuthentication]

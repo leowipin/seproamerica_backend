@@ -30,6 +30,7 @@ JWT_SECRET_KEY = env('JWT_SECRET_KEY')
 DEBUG = True
 
 HOST_URL = 'seproamerica2022.pythonanywhere.com'
+# url: http://127.0.0.1:8000
 
 ALLOWED_HOSTS = ['seproamerica2022.pythonanywhere.com', '127.0.0.1' ]
 
