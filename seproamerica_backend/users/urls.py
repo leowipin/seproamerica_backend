@@ -19,4 +19,6 @@ urlpatterns = [
     path('adminGroupList/', AdminGroupList.as_view(), name='admingrouplist'),
     path('operationalGroupList/', OperationalGroupList.as_view(), name='operationalgrouplist'),
     path('groupList/', GroupListView.as_view(), name='grouplist'),
+    path('passwordReset/', PasswordReset.as_view(), name='passwordreset'),
+    path('passwordVerify/', VerifyPassword.as_view(), name='passwordverify'),
 ]

@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion
 from rest_framework import status
 from .models import TokenVerificacion
 from django.template.loader import render_to_string
@@ -226,6 +226,9 @@ class VerifyEmail(APIView):
     def get(self, request, token):
         try:
             verification_token = TokenVerificacion.objects.get(token=token)
+            if verification_token.has_expired():
+                context = {'verification_successful': False, 'message': 'Tu link de verificación ha expirado, por favor vuelve a registrarte.'}
+                return render(request, 'verificationResult.html', context)
             user = verification_token.user
             user.isVerified = True
             user.save()
@@ -322,3 +325,54 @@ class PermissionsView(APIView):
             permissions.extend(codenames)
 
         return Response({'permissions': permissions})
+
+
+class PasswordReset(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        try:
+            user = Usuario.objects.get(email=email)
+        except Usuario.DoesNotExist:
+            return Response({'message': 'No existe ningún usuario con ese correo electrónico'}, status=status.HTTP_404_NOT_FOUND)
+
+        # generate verification token
+        verification_token = secrets.token_hex(3)
+
+        # save verification token to database
+        PasswordResetVerificacion.objects.create(user=user, token=verification_token)
+
+        # send verification email
+        context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
+        html_content = render_to_string('passwordResetEmail.html', context)
+        subject = 'Restablecimiento de contraseña de Seproamérica'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to = [user.email]
+        email = EmailMessage(subject, html_content, from_email, to)
+        email.content_subtype = 'html'
+
+        try:
+            email.send()
+        except Exception as e:
+            print(e)
+            return Response({'message': 'Error al enviar el email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Email para restablecimiento de contraseña enviado'}, status=status.HTTP_200_OK)
+    
+class VerifyPassword(APIView):
+    def post(self, request):
+        token = request.data.get('token')
+        password = request.data.get('password')
+
+        try:
+            token_instance = PasswordResetVerificacion.objects.get(token=token)
+            if token_instance.has_expired():
+                return Response({'message': 'El token ha expirado'}, status=status.HTTP_400_BAD_REQUEST)
+        except PasswordResetVerificacion.DoesNotExist:
+            return Response({'message': 'El token no es válido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = token_instance.user
+        user.set_password(password)
+        user.save()
+
+        token_instance.delete()
+
+        return Response({'message': 'Contraseña restablecida exitosamente'}, status=status.HTTP_200_OK)

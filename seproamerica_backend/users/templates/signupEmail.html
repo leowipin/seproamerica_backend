@@ -2,10 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Welcome to Seproamérica! {{name}}</title>
+    <title>Bienvenido a Seproamérica! {{name}}</title>
   </head>
   <body>
-    <h1>Welcome to Seproamérica,!</h1>
+    <h1>Bienvenido a Seproamérica!</h1>
+    <h3>Este link expirará en 24 horas </h3>
     <a href="{{ HOST_URL }}{% url 'verification' token=verification_token %}">Click here to verify your email</a>
   </body>
 </html>

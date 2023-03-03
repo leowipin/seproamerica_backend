@@ -85,5 +85,19 @@ class TokenVerificacion(models.Model):
             self.expiry_date = timezone.now() + timezone.timedelta(hours=24)
         super().save(*args, **kwargs)
 
+class PasswordResetVerificacion(models.Model):
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    token = models.CharField(max_length=6, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expiry_date = models.DateTimeField()
+
+    def has_expired(self):
+        now = timezone.now()
+        return now > self.expiry_date
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.expiry_date = timezone.now() + timezone.timedelta(hours=24)
+        super().save(*args, **kwargs)
 
 
