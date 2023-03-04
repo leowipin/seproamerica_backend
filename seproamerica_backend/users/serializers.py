@@ -64,6 +64,8 @@ class BranchSerializer(serializers.ModelSerializer):
 
 
 class ClientSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.first_name')
     email = serializers.EmailField(source='user.email')
     username = serializers.CharField(source='user.username')
     dni = serializers.CharField(source='user.dni')
@@ -73,10 +75,11 @@ class ClientSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(source='user.phone_number')
     isVerified = serializers.BooleanField(source='user.isVerified')
     date_joined = serializers.DateTimeField(source='user.date_joined')
+    group = serializers.SlugRelatedField(queryset=Group.objects.all(), slug_field='name', source='user.groups.first')
 
     class Meta:
         model = Cliente
-        fields = ('id', 'email', 'username', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined')
+        fields = ('id', 'first_name', 'last_name', 'email', 'username', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined', 'group')
 
 
 class ClientSignUpSerializer(serializers.ModelSerializer):
@@ -96,6 +99,8 @@ class AdminStaffSerializer(serializers.ModelSerializer):
 
 
 class AdminInfoSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.first_name')
     email = serializers.EmailField(source='user.email')
     username = serializers.CharField(source='user.username')
     dni = serializers.CharField(source='user.dni')
@@ -107,11 +112,12 @@ class AdminInfoSerializer(serializers.ModelSerializer):
     date_joined = serializers.DateTimeField(source='user.date_joined')
     charge = serializers.SlugRelatedField(queryset=Cargo.objects.all(), slug_field='name')
     branch = serializers.SlugRelatedField(queryset=Sucursal.objects.all(), slug_field='name')
+    group = serializers.SlugRelatedField(queryset=Group.objects.all(), slug_field='name', source='user.groups.first')
     #created_by = serializers.SlugRelatedField(queryset=Usuario.objects.all(), slug_field='email')
 
     class Meta:
         model = PersonalAdministrativo
-        fields = ('id', 'email', 'username', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined', 'start_date', 'final_date', 'charge', 'status', 'branch')
+        fields = ('id','first_name', 'last_name', 'email', 'username', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined', 'start_date', 'final_date', 'charge', 'status', 'branch','group')
 
 
 class OperationalStaffSerializer(serializers.ModelSerializer):
@@ -123,6 +129,8 @@ class OperationalStaffSerializer(serializers.ModelSerializer):
         fields = ('branch', 'charge', 'user', 'created_by')
 
 class OperationalInfoSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.first_name')
     email = serializers.EmailField(source='user.email')
     username = serializers.CharField(source='user.username')
     dni = serializers.CharField(source='user.dni')
@@ -135,7 +143,8 @@ class OperationalInfoSerializer(serializers.ModelSerializer):
     charge = serializers.SlugRelatedField(queryset=Cargo.objects.all(), slug_field='name')
     branch = serializers.SlugRelatedField(queryset=Sucursal.objects.all(), slug_field='name')
     created_by = serializers.SlugRelatedField(queryset=Usuario.objects.all(), slug_field='email')
+    group = serializers.SlugRelatedField(queryset=Group.objects.all(), slug_field='name', source='user.groups.first')
 
     class Meta:
         model = PersonalOperativo
-        fields = ('id', 'email', 'username', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined', 'start_date', 'final_date', 'charge', 'status', 'branch', 'created_by')
+        fields = ('id','first_name', 'last_name', 'email', 'username', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined', 'start_date', 'final_date', 'charge', 'status', 'branch', 'created_by','group')
