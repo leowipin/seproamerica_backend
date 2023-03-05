@@ -334,7 +334,7 @@ class PasswordReset(APIView):
             user = Usuario.objects.get(email=email)
         except Usuario.DoesNotExist:
             return Response({'message': 'Correo no registrado'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         token_sent = PasswordResetVerificacion.objects.filter(user__email=email).exists()
 
         if token_sent:
@@ -358,13 +358,11 @@ class PasswordReset(APIView):
 
         try:
             email.send()
-            user.set_password(verification_token)
-            user.save()
         except Exception as e:
             print(e)
             return Response({'message': 'Error al enviar el correo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Correo para restablecimiento de contraseña enviado'}, status=status.HTTP_200_OK)
-    
+
 class ChangePassword(APIView):
     def post(self, request):
         token = request.data.get('token')
