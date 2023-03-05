@@ -334,6 +334,12 @@ class PasswordReset(APIView):
             user = Usuario.objects.get(email=email)
         except Usuario.DoesNotExist:
             return Response({'message': 'Correo no registrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        token_sent = PasswordResetVerificacion.objects.filter(user__email=email).exists()
+
+        if token_sent:
+            return Response({'message': 'Token de verificación ya ha sido enviado'}, status=status.HTTP_400_BAD_REQUEST)
+
 
         # generate verification token
         verification_token = secrets.token_hex(3)
@@ -342,7 +348,7 @@ class PasswordReset(APIView):
         PasswordResetVerificacion.objects.create(user=user, token=verification_token)
 
         # send verification email
-        context = {'name': user.first_name, 'new_password': verification_token, 'HOST_URL':settings.HOST_URL}
+        context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
         html_content = render_to_string('passwordResetEmail.html', context)
         subject = 'Restablecimiento de contraseña de Seproamérica'
         from_email = settings.DEFAULT_FROM_EMAIL
