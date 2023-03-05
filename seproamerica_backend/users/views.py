@@ -333,7 +333,7 @@ class PasswordReset(APIView):
         try:
             user = Usuario.objects.get(email=email)
         except Usuario.DoesNotExist:
-            return Response({'message': 'No existe ningún usuario con ese correo electrónico'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Correo no registrado'}, status=status.HTTP_404_NOT_FOUND)
 
         # generate verification token
         verification_token = secrets.token_hex(3)
@@ -342,7 +342,7 @@ class PasswordReset(APIView):
         PasswordResetVerificacion.objects.create(user=user, token=verification_token)
 
         # send verification email
-        context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
+        context = {'name': user.first_name, 'new_password': verification_token, 'HOST_URL':settings.HOST_URL}
         html_content = render_to_string('passwordResetEmail.html', context)
         subject = 'Restablecimiento de contraseña de Seproamérica'
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -352,12 +352,14 @@ class PasswordReset(APIView):
 
         try:
             email.send()
+            user.set_password(verification_token)
+            user.save()
         except Exception as e:
             print(e)
-            return Response({'message': 'Error al enviar el email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'message': 'Email para restablecimiento de contraseña enviado'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Error al enviar el correo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Correo para restablecimiento de contraseña enviado'}, status=status.HTTP_200_OK)
     
-class VerifyPassword(APIView):
+class ChangePassword(APIView):
     def post(self, request):
         token = request.data.get('token')
         password = request.data.get('password')
