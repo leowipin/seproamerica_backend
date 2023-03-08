@@ -21,6 +21,8 @@ class Usuario(AbstractUser):
     address = models.CharField(max_length=200)
     phone_number = models.CharField(max_length=20)
     isVerified = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+    is_operative = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 

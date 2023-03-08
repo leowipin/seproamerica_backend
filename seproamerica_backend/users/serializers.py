@@ -32,7 +32,7 @@ class SignInSerializer(serializers.Serializer):
     def validate(self, data):
         user = authenticate(**data)
         if not user:
-            raise serializers.ValidationError('Incorrect credentials')
+            raise serializers.ValidationError('Correo o contraseña incorrectos')
         return user
 
 class GroupSerializer(serializers.ModelSerializer):

@@ -62,7 +62,7 @@ class ClientSignInView(APIView):
         user = serializer.validated_data
 
         if not user.isVerified:
-            return Response({'message': 'Account not verified'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'message': 'Cuenta no verificada.'}, status=status.HTTP_403_FORBIDDEN)
 
         token = generate_token(user)
 
@@ -90,7 +90,7 @@ class AdminSignInView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
 
-        if not user.is_staff:
+        if not user.is_admin:
             return Response({'message':'No tiene cuenta de administrador'}, status=status.HTTP_403_FORBIDDEN)
 
         token = generate_token(user)
@@ -107,7 +107,7 @@ class OperationalSignInView(APIView):
 
         token = generate_token(user)
 
-        if not user.is_staff:
+        if not user.is_operative:
             return Response({'message':'No tiene cuenta de personal operativo'}, status=status.HTTP_403_FORBIDDEN)
 
         return Response({
@@ -126,6 +126,7 @@ class AdminView(APIView):
         if userSerializer.is_valid():
             user = userSerializer.save()
             user.is_staff = True
+            user.is_admin = True
             user.save()
             request.data['user'] = user.id
             adminSerializer = AdminStaffSerializer(data=request.data)
@@ -187,6 +188,7 @@ class OperationalView(APIView):
         if userSerializer.is_valid():
             user = userSerializer.save()
             user.is_staff = True
+            user.is_operative = True
             user.save()
             request.data['user'] = user.id
             request.data['created_by'] = request.user
