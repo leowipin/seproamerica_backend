@@ -13,12 +13,12 @@ class Usuario(AbstractUser):
     dni = models.CharField(max_length=20, unique=True)
     birthdate = models.DateField(default=date.today)
     GENDER_CHOICES = [
-        ('M', 'Masculino'),
-        ('F', 'Femenino'),
-        ('I', 'Indefinido'),
+        ('masculino','masculino'),
+        ('femenino','femenino'),
+        ('indefinido','indefinido'),
     ]
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    address = models.CharField(max_length=200)
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default='indefinido')
+    address = models.CharField(max_length=200, default='Ecuador')
     phone_number = models.CharField(max_length=20)
     isVerified = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
@@ -28,46 +28,42 @@ class Usuario(AbstractUser):
 
 class Cliente(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+
+class GroupType(models.Model):
+    TYPE_CHOICES = [
+        ('administrativo', 'administrativo'),
+        ('operativo', 'operativo'),
+        ('cliente', 'cliente')
+    ]
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     
 
 class Cargo(models.Model):
     TYPE_CHOICES = [
-        ('A', 'Administrative'),
-        ('O', 'Operative')
+        ('administrativo', 'administrativo'),
+        ('operativo', 'operativo')
     ]
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField()
-    type = models.CharField(max_length=1, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
 
 class Sucursal(models.Model):
     name = models.CharField(max_length=50, unique=True)
     address = models.CharField(max_length=200)
 
 class PersonalAdministrativo(models.Model):
-    STATUS_CHOICES = [
-        ('A', 'Activo'),
-        ('I', 'Inactivo'),
-        ('V', 'Vacaciones')
-    ]
-
     start_date = models.DateField(default=date.today)
     final_date = models.DateField(default=date.today)
     branch = models.ForeignKey(Sucursal, on_delete=models.SET_NULL, null=True, blank=True)
     charge = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='A')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 class PersonalOperativo(models.Model):
-    STATUS_CHOICES = [
-        ('A', 'Activo'),
-        ('I', 'Inactivo'),
-        ('V', 'Vacaciones')
-    ]
-
     start_date = models.DateField(default=date.today)
     final_date = models.DateField(default=date.today)
     charge = models.ForeignKey(Cargo, on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='A')
     branch = models.ForeignKey(Sucursal, on_delete=models.SET_NULL, null=True, blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='administrative_staffs_created')
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

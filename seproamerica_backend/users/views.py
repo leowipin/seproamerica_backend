@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType
 from rest_framework import status
 from .models import TokenVerificacion
 from django.template.loader import render_to_string
@@ -14,7 +14,9 @@ from django.db import transaction
 from users.utils import generate_token, perms_englishtospanish, perms_spanishtoenglish
 from django.contrib.auth.models import Permission, Group
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 class SignUpView(APIView):
     @transaction.atomic()
@@ -63,6 +65,9 @@ class ClientSignInView(APIView):
 
         if not user.isVerified:
             return Response({'message': 'Cuenta no verificada.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if not user.is_active:
+            return Response({'message':'Su cuenta está inactiva.'}, status=status.HTTP_403_FORBIDDEN)
 
         token = generate_token(user)
 
@@ -70,7 +75,8 @@ class ClientSignInView(APIView):
             "token": token
         }, status=status.HTTP_200_OK)
 
-class ClientView(APIView): # view for the actions that the client can perform for their own data
+class ClientView(APIView): # view for the actions that the client can perform for their own data. delete included
+    authentication_classes = [JWTAuthentication]
     pass
 
 class ClientListView(APIView):
@@ -133,7 +139,7 @@ class AdminView(APIView):
             if adminSerializer.is_valid():
                 adminUser = adminSerializer.save()
                 adminUser.save()
-                return Response({'message': 'Usuario creado con éxito'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Personal administrativo creado con éxito'}, status=status.HTTP_200_OK)
             else:
                 return Response(adminSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -144,9 +150,55 @@ class AdminView(APIView):
         try:
             adminstaff = PersonalAdministrativo.objects.select_related('user').get(user_id=user_id)
             serializer = AdminInfoSerializer(adminstaff)
-            return Response(serializer.data)
+            data = serializer.data
+            data['id'] = user_id
+            return Response(data,  status=status.HTTP_200_OK)
         except Cliente.DoesNotExist:
-            return Response({'message': f'Usuario con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Personal administrativo no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request):
+        user_id = request.data.get('id')
+        try:
+            user = Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'message': 'Personal administrativo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        group_name = request.data.get('group')
+        try:
+            group = Group.objects.get(name=group_name)
+        except Group.DoesNotExist:
+            return Response({'message': 'Grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        user_group = User.groups.through.objects.get(usuario=user)
+        user_group.group_id = group.id
+        user_group.save()
+        
+        user_serializer = UserPutSerializer(user, data=request.data)
+        if user_serializer.is_valid():
+            user = user_serializer.save()
+            request.data['user'] = user.id
+            try:
+                personal_admin = PersonalAdministrativo.objects.get(user_id=user_id)
+            except PersonalAdministrativo.DoesNotExist:
+                return Response({'message': 'Personal administrativo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            
+            admin_serializer = AdminStaffSerializer(personal_admin, data=request.data)
+            if admin_serializer.is_valid():
+                adminUser = admin_serializer.save()
+                return Response({'message': 'Personal administrativo actualizado con éxito'}, status=status.HTTP_200_OK)
+            else:
+                return Response(admin_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        user_id = request.data.get('id')
+        try:
+            user = Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'message': 'Personal administrativo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        user.delete()
+        return Response({'message': 'Personal administrativo eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
 
 class AdminListView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -169,12 +221,24 @@ class AdminClientView(APIView):
         try:
             client = Cliente.objects.select_related('user').get(user_id=user_id)
             serializer = ClientSerializer(client)
-            return Response(serializer.data)
+            data = serializer.data
+            data['id'] = user_id
+            return Response(data,  status=status.HTTP_200_OK)
         except Cliente.DoesNotExist:
-            return Response({'message': f'Usuario con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Cliente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
+    # what data the admin can modify to the client ¿?
+    
     def delete(self, request):
-        pass
+        user_id = request.data.get('id')
+        try:
+            user = Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'message': 'Cliente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        user.delete()
+        return Response({'message': 'Cliente eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
+        
+        
 
 
 class OperationalView(APIView):
@@ -196,7 +260,7 @@ class OperationalView(APIView):
             if operationalSerializer.is_valid():
                 opUser = operationalSerializer.save()
                 opUser.save()
-                return Response({'message': 'Usuario creado con éxito'}, status=status.HTTP_200_OK)
+                return Response({'message': 'Empleado creado con éxito'}, status=status.HTTP_200_OK)
             else:
                 return Response(operationalSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -207,9 +271,55 @@ class OperationalView(APIView):
         try:
             opstaff = PersonalOperativo.objects.select_related('user').get(user_id=user_id)
             serializer = OperationalInfoSerializer(opstaff)
-            return Response(serializer.data)
+            data = serializer.data
+            data['id'] = user_id
+            return Response(data,  status=status.HTTP_200_OK)
         except PersonalOperativo.DoesNotExist:
-            return Response({'message': f'Personal operativo con id {user_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def put(self, request):
+        user_id = request.data.get('id')
+        try:
+            user = Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        group_name = request.data.get('group')
+        try:
+            group = Group.objects.get(name=group_name)
+        except Group.DoesNotExist:
+            return Response({'message': 'Grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        user_group = User.groups.through.objects.get(usuario=user)
+        user_group.group_id = group.id
+        user_group.save()
+        
+        user_serializer = UserPutSerializer(user, data=request.data)
+        if user_serializer.is_valid():
+            user = user_serializer.save()
+            request.data['user'] = user.id
+            try:
+                personal_operative = PersonalOperativo.objects.get(user_id=user_id)
+            except PersonalOperativo.DoesNotExist:
+                return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            
+            operative_serializer = OperationalStaffSerializer(personal_operative, data=request.data)
+            if operative_serializer.is_valid():
+                opUser = operative_serializer.save()
+                return Response({'message': 'Empleado actualizado con éxito'}, status=status.HTTP_200_OK)
+            else:
+                return Response(operative_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        user_id = request.data.get('id')
+        try:
+            user = Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        user.delete()
+        return Response({'message': 'Empleado eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class OperationalListView(APIView):
@@ -248,40 +358,81 @@ class GroupView(APIView):
     def post(self, request):
         permissions = request.data['permissions']
         for i in range(len(permissions)):
-            codename = perms_spanishtoenglish(permissions[i])
-            permissions[i] = codename
+            name = perms_spanishtoenglish(permissions[i])
+            permissions[i] = name
 
-        group_type = request.data['group_type']
-        if group_type == 'admin':
-            request.data['name'] = "admin_" + request.data['name']
-        elif group_type == 'op':
-            request.data['name'] = "op_" + request.data['name']
         serializer = GroupSerializer(data=request.data)
         if serializer.is_valid():
             group = serializer.save()
             group.permissions.set(serializer.validated_data['permissions'])
-            return Response({'message': 'Group created successfully'}, status=status.HTTP_200_OK)
+            GroupType.objects.create(group=group, type=request.data['group_type'])
+            return Response({'message': 'Grupo creado exitosamente'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        group_name = request.GET.get('name')
+        group_id = request.GET.get('id')
 
-        if not group_name:
-            return Response({'message': 'Nombre del grupo no enviado'}, status=status.HTTP_400_BAD_REQUEST)
+        if not group_id:
+            return Response({'message': 'ID del grupo no enviado'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            group = Group.objects.get(name=group_name)
+            group = Group.objects.get(id=group_id)
         except Group.DoesNotExist:
             return Response({'message': 'Grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = GroupSerializer(group)
         permissions = serializer.data['permissions']
         for i in range(len(permissions)):
-            codename = perms_englishtospanish(permissions[i])
-            permissions[i] = codename
+            name = perms_englishtospanish(permissions[i])
+            permissions[i] = name
+            
+        group_type = GroupType.objects.filter(group=group).values_list('type', flat=True).first()
+        data = serializer.data
+        data['group_type'] = group_type
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK)
+    
+    def put(self, request):
+        group_id = request.data.get('id')
+        if not group_id:
+            return Response({'message': 'ID del grupo no enviado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            group = Group.objects.get(id=group_id)
+        except Group.DoesNotExist:
+            return Response({'message': 'Grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        group_type = request.data.pop('group_type')
+        permissions = request.data.get('permissions')
+        if permissions:
+            for i in range(len(permissions)):
+                name = perms_spanishtoenglish(permissions[i])
+                permissions[i] = name
+
+        serializer = GroupSerializer(group, data=request.data)
+        if serializer.is_valid():
+            group_type_instance = GroupType.objects.get(group=group)
+            group_type_instance.type = group_type
+            group_type_instance.save()
+            group = serializer.save()
+            group.permissions.set(serializer.validated_data['permissions'])
+            return Response({'message': 'Grupo modificado exitosamente'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request):
+        group_id = request.data.get('id')
+        if not group_id:
+            return Response({'message': 'ID del grupo no enviado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            group = Group.objects.get(id=group_id)
+        except Group.DoesNotExist:
+            return Response({'message': 'Grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        group.delete()
+        return Response({'message': 'Grupo eliminado correctamente'},status=status.HTTP_204_NO_CONTENT)
 
 class GroupListView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -289,8 +440,16 @@ class GroupListView(APIView):
     required_permissions = ['view_group']
 
     def get(self, request):
-        groups = Group.objects.values_list('name', flat=True)
-        return Response({"groups": list(groups)})
+        groups = Group.objects.all()
+        group_list = []
+        for group in groups:
+            group_type = GroupType.objects.get(group=group).type
+            group_list.append({
+                'id': group.id,
+                'name': group.name,
+                'group_type': group_type,
+            })
+        return Response(group_list)
 
 
 class AdminGroupList(APIView):
@@ -299,7 +458,7 @@ class AdminGroupList(APIView):
     required_permissions = ['view_group']
 
     def get(self, request):
-        groups = Group.objects.filter(name__contains='admin').values_list('name', flat=True)
+        groups = Group.objects.filter(grouptype__type='administrativo').values_list('name', flat=True)
         return Response({"groups": list(groups)})
 
 class OperationalGroupList(APIView):
@@ -308,7 +467,7 @@ class OperationalGroupList(APIView):
     required_permissions = ['view_group']
 
     def get(self, request):
-        groups = Group.objects.filter(name__contains='op').values_list('name', flat=True)
+        groups = Group.objects.filter(grouptype__type='operativo').values_list('name', flat=True)
         return Response({"groups": list(groups)})
 
 class PermissionsView(APIView):
@@ -316,15 +475,15 @@ class PermissionsView(APIView):
     permission_classes = [HasRequiredPermissions]
     required_permissions = ['view_group']
     def get(self, request):
-        content_types = ContentType.objects.filter(app_label__in=['users', 'auth']).exclude(model__in=['tokenverificacion', 'permission'])
+        content_types = ContentType.objects.filter(app_label__in=['users', 'auth']).exclude(model__in=['tokenverificacion', 'permission','passwordresetverificacion', 'grouptype', 'usuario'])
         permissions = []
         for content_type in content_types:
             content_type_permissions = Permission.objects.filter(content_type=content_type)
-            codenames = []
+            names = []
             for p in content_type_permissions:
-                codename = perms_englishtospanish(p.codename)
-                codenames.append(codename)
-            permissions.extend(codenames)
+                name = perms_englishtospanish(p.name)
+                names.append(name)
+            permissions.extend(names)
 
         return Response({'permissions': permissions})
 

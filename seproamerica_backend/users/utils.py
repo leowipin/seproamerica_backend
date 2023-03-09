@@ -39,24 +39,26 @@ def get_token(request):
 
     return token
 
-def perms_englishtospanish(codename):
-    if "view" in codename:
-        codename = codename.replace("view","ver")
-    if "add" in codename:
-        codename = codename.replace("add","crear")
-    if "change" in codename:
-        codename = codename.replace("change","modificar")
-    if "delete" in codename:
-        codename = codename.replace("delete","eliminar")
-    return codename
+def perms_englishtospanish(name):
+    name = name.replace("Can ", "puede ") 
+    if "view" in name:
+        name = name.replace(" view "," ver ")
+    elif "add" in name:
+        name = name.replace(" add "," crear ")
+    elif "change" in name:
+        name = name.replace(" change "," modificar ")
+    elif "delete" in name:
+        name = name.replace(" delete "," eliminar ")
+    return name
 
-def perms_spanishtoenglish(codename):
-    if "ver" in codename:
-        codename = codename.replace("ver", "view")
-    if "crear" in codename:
-        codename = codename.replace("crear", "add")
-    if "modificar" in codename:
-        codename = codename.replace("modificar", "change")
-    if "eliminar" in codename:
-        codename = codename.replace("eliminar", "delete")
-    return codename
+def perms_spanishtoenglish(name):
+    name = name.replace("puede ", "Can ")
+    if "ver" in name:
+        name = name.replace(" ver ", " view ")
+    if "crear" in name:
+        name = name.replace(" crear ", " add ")
+    if "modificar" in name:
+        name = name.replace(" modificar ", " change ")
+    if "eliminar" in name:
+        name = name.replace(" eliminar ", " delete ")
+    return name
