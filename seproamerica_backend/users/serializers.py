@@ -48,9 +48,10 @@ class ClientPutSerializer(serializers.ModelSerializer):
 
 # serializer needed to manage the data that a client can modify about himself
 class ClientUpdateSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(read_only=True)
     class Meta:
         model = Usuario
-        fields = ('id', 'first_name', 'last_name', 'dni', 'phone_number', 'birthdate', 'address', 'gender')
+        fields = ('first_name', 'last_name', 'dni', 'phone_number', 'birthdate', 'address', 'gender', 'email')
 
 class ClientNamesSerializer(serializers.ModelSerializer):
     class Meta:

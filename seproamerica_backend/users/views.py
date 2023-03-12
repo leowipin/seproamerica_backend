@@ -95,7 +95,7 @@ class ClientView(APIView): # view for the actions that the client can perform fo
     def put(self, request):
         user_id = request.user
         user = self.get_client(user_id)
-        serializer = ClientUpdateSerializer(user, data=request.data)
+        serializer = ClientUpdateSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Datos modificados correctamente'}, status=status.HTTP_200_OK)
