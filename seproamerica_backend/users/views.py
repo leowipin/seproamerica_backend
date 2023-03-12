@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType
 from rest_framework import status
 from .models import TokenVerificacion
@@ -15,6 +15,8 @@ from users.utils import generate_token, perms_englishtospanish, perms_spanishtoe
 from django.contrib.auth.models import Permission, Group
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import NotFound
+
 
 User = get_user_model()
 
@@ -75,9 +77,32 @@ class ClientSignInView(APIView):
             "token": token
         }, status=status.HTTP_200_OK)
 
-class ClientView(APIView): # view for the actions that the client can perform for their own data. delete included
+class ClientView(APIView): # view for the actions that the client can perform for their own data. get, delete and put
     authentication_classes = [JWTAuthentication]
-    pass
+
+    def get_client(self, user_id):
+        try:
+            return Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            raise NotFound('Cliente no encontrado')
+    
+    def get(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        serializer = ClientUpdateSerializer(user)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        serializer = ClientUpdateSerializer(user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Datos modificados correctamente'}, status=status.HTTP_200_OK)
+
+    
+    
+    
 
 class ClientListView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -216,6 +241,13 @@ class AdminClientView(APIView):
     permission_classes = [HasRequiredPermissions]
     required_permissions = ['view_cliente','delete_cliente']
 
+    def get_client(self, user_id):
+        try:
+            client = Cliente.objects.select_related('user').get(user_id=user_id)
+            return client
+        except Cliente.DoesNotExist:
+            raise NotFound('Cliente no encontrado')
+        
     def get(self, request):
         user_id = request.GET.get('id')
         try:
@@ -227,7 +259,13 @@ class AdminClientView(APIView):
         except Cliente.DoesNotExist:
             return Response({'message': 'Cliente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-    # what data the admin can modify to the client ¿?
+    def put(self, request):
+        user_id = request.data.get('id')
+        client = self.get_client(user_id)
+        serializer = ClientPutSerializer(client.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Cliente modificado correctamente'}, status=status.HTTP_200_OK)
     
     def delete(self, request):
         user_id = request.data.get('id')

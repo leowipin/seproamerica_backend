@@ -4,7 +4,7 @@ from users.views import *
 urlpatterns = [
     path('signup/', SignUpView.as_view(), name='signup'),
     path('clientSignin/', ClientSignInView.as_view(), name='clientsignin'),
-    path('client/', ClientView.as_view(), name='client'),
+    path('client/', ClientView.as_view(), name='client-detail'),
     path('clientList/', ClientListView.as_view(), name='clientlist'),
     path('adminSignin/', AdminSignInView.as_view(), name='adminsignin'),
     path('adminStaff/', AdminView.as_view(), name='adminstaff'),

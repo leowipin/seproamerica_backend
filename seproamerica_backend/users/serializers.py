@@ -34,12 +34,23 @@ class SignInSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError('Correo o contraseña incorrectos')
         return user
-    
+# serializer needed to manage the data that an admin can modify of a personal    
 class UserPutSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ('email', 'first_name', 'last_name', 'phone_number', 'dni', 'birthdate', 'gender', 'address', 'isVerified', 'is_active', 'date_joined')
+
+# serializer needed to manage the data that an admin can modify of a client
+class ClientPutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('isVerified', 'is_active')
+
+# serializer needed to manage the data that a client can modify about himself
+class ClientUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ('id', 'first_name', 'last_name', 'dni', 'phone_number', 'birthdate', 'address', 'gender')
 
 class GroupSerializer(serializers.ModelSerializer):
     permissions = serializers.SlugRelatedField(many=True, queryset=Permission.objects.all(), slug_field='name')
