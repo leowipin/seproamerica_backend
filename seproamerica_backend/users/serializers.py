@@ -52,6 +52,11 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ('id', 'first_name', 'last_name', 'dni', 'phone_number', 'birthdate', 'address', 'gender')
 
+class ClientNamesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Usuario
+        fields = ('first_name', 'last_name')
+
 class GroupSerializer(serializers.ModelSerializer):
     permissions = serializers.SlugRelatedField(many=True, queryset=Permission.objects.all(), slug_field='name')
 

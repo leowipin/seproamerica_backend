@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType
 from rest_framework import status
 from .models import TokenVerificacion
@@ -90,7 +90,7 @@ class ClientView(APIView): # view for the actions that the client can perform fo
         user_id = request.user
         user = self.get_client(user_id)
         serializer = ClientUpdateSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request):
         user_id = request.user
@@ -99,9 +99,23 @@ class ClientView(APIView): # view for the actions that the client can perform fo
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Datos modificados correctamente'}, status=status.HTTP_200_OK)
+    
 
-    
-    
+
+class ClientNamesView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get_client(self, user_id):
+        try:
+            return Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            raise NotFound('Cliente no encontrado')
+        
+    def get(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        serializer = ClientNamesSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 class ClientListView(APIView):
