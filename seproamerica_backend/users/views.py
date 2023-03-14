@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword
 from rest_framework import status
 from .models import TokenVerificacion
 from django.template.loader import render_to_string
@@ -16,6 +16,10 @@ from django.contrib.auth.models import Permission, Group
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import NotFound
+from django.db import IntegrityError
+from django.contrib.auth.hashers import make_password, check_password
+
+
 
 
 User = get_user_model()
@@ -81,11 +85,8 @@ class ClientView(APIView): # view for the actions that the client can perform fo
     authentication_classes = [JWTAuthentication]
 
     def get_client(self, user_id):
-        try:
-            return Usuario.objects.get(id=user_id)
-        except Usuario.DoesNotExist:
-            raise NotFound('Cliente no encontrado')
-    
+        return Usuario.objects.get(id=user_id)
+
     def get(self, request):
         user_id = request.user
         user = self.get_client(user_id)
@@ -106,10 +107,8 @@ class ClientNamesView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def get_client(self, user_id):
-        try:
-            return Usuario.objects.get(id=user_id)
-        except Usuario.DoesNotExist:
-            raise NotFound('Cliente no encontrado')
+        return Usuario.objects.get(id=user_id)
+
         
     def get(self, request):
         user_id = request.user
@@ -391,16 +390,16 @@ class VerifyEmail(APIView):
         try:
             verification_token = TokenVerificacion.objects.get(token=token)
             if verification_token.has_expired():
-                context = {'verification_successful': False, 'message': 'Tu link de verificación ha expirado, por favor vuelve a registrarte.'}
+                context = {'title': 'Verificación de correo', 'message': 'Tu enlace de verificación ha expirado, por favor vuelve a registrarte.'}
                 return render(request, 'verificationResult.html', context)
             user = verification_token.user
             user.isVerified = True
             user.save()
             verification_token.delete()
-            context = {'verification_successful': True, 'message': 'Verificación exitosa'}
+            context = {'title': 'Verificación de correo', 'message': 'Verificación exitosa! Tu solicitud ha sido procesada correctamente.'}
             return render(request, 'verificationResult.html', context)
         except TokenVerificacion.DoesNotExist:
-            context = {'verification_successful': False, 'message': 'Verificación fallida'}
+            context = {'title': 'Verificación de correo', 'message': 'Verificación fallida. Lo sentimos, Tu solicitud no ha sido procesada correctamente.'}
             return render(request, 'verificationResult.html', context)
 
 class GroupView(APIView):
@@ -595,3 +594,127 @@ class ChangePassword(APIView):
         token_instance.delete()
 
         return Response({'message': 'Contraseña restablecida exitosamente'}, status=status.HTTP_200_OK)
+    
+class ChangeEmail(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get_client(self, user_id):
+        return Usuario.objects.get(id=user_id)
+    
+    def post(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        new_email = request.data.get('email')
+
+        token_sent = CambioCorreo.objects.filter(new_email=new_email).exists()
+
+        if token_sent:
+            return Response({'message': 'El correo ya ha sido enviado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        # generate verification token
+        verification_token = secrets.token_hex(16)
+
+        # save verification token to database
+        CambioCorreo.objects.create(user=user, token=verification_token, new_email = new_email)
+
+        # send verification email
+        context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
+        html_content = render_to_string('changeEmail.html', context)
+        subject = 'Cambio de correo Seproamérica'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to = [new_email]
+        email = EmailMessage(subject, html_content, from_email, to)
+        email.content_subtype = 'html'
+
+        try:
+            email.send()
+        except Exception as e:
+            print(e)
+            return Response({'message': 'Error al enviar el correo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Correo enviado'}, status=status.HTTP_200_OK)
+    
+class VerifyNewEmail(APIView):
+    def get(self, request, token):
+        try:
+            verification_token = CambioCorreo.objects.get(token=token)
+            if verification_token.has_expired():
+                context = {'title': 'Confirmación de correo', 'message': 'Tu enlace de confirmación ha expirado, por favor vuelve a registrarte.'}
+                return render(request, 'verificationResult.html', context)
+            user = verification_token.user
+            user.email = verification_token.new_email
+            user.save()
+            verification_token.delete()
+            context = {'title': 'Confirmación de correo', 'message': '¡Confirmación exitosa! Tu solicitud ha sido procesada correctamente.'}
+            return render(request, 'verificationResult.html', context)
+        except TokenVerificacion.DoesNotExist:
+            context = {'title': 'Confirmación de correo', 'message': 'Confirmación fallida. Lo sentimos, Tu solicitud no ha sido procesada correctamente.'}
+            return render(request, 'verificationResult.html', context)
+        except IntegrityError as e:
+            context = {'title': 'Confirmación de correo', 'message': 'Confirmación fallida. Ya existe un usuario con este correo electrónico.'}
+            return render(request, 'verificationResult.html', context)
+        except Exception as e:
+            context = {'title': 'Confirmación de correo', 'message': 'Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo más tarde.'}
+            return render(request, 'verificationResult.html', context)
+        
+
+class ChangeNewPassword(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get_client(self, user_id):
+        return Usuario.objects.get(id=user_id)
+    
+    def post(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        new_password = request.data.get('new_password')
+        password = request.data.get('password')
+
+        if not check_password(password, user.password):
+            return Response({'message': 'Su contraseña actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        token_sent = CambioPassword.objects.filter(user=user_id).exists()
+
+        if token_sent:
+            return Response({'message': 'El correo ya ha sido enviado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        # generate verification token
+        verification_token = secrets.token_hex(16)
+
+        # save verification token to database
+        CambioPassword.objects.create(user=user, token=verification_token, new_password = make_password(new_password))
+
+        # send verification email
+        context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
+        html_content = render_to_string('changePassword.html', context)
+        subject = 'Cambio de contraseña Seproamérica'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        to = [user.email]
+        email = EmailMessage(subject, html_content, from_email, to)
+        email.content_subtype = 'html'
+
+        try:
+            email.send()
+        except Exception as e:
+            print(e)
+            return Response({'message': 'Error al enviar el correo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message': 'Correo enviado'}, status=status.HTTP_200_OK)
+
+class VerifyNewPassword(APIView):
+    def get(self, request, token):
+        try:
+            verification_token = CambioPassword.objects.get(token=token)
+            if verification_token.has_expired():
+                context = {'title': 'Confirmación de contraseña', 'message': 'Tu enlace de confirmación ha expirado, por favor vuelve a registrarte.'}
+                return render(request, 'verificationResult.html', context)
+            user = verification_token.user
+            user.password = verification_token.new_password
+            user.save()
+            verification_token.delete()
+            context = {'title': 'Confirmación de contraseña', 'message': '¡Confirmación exitosa! Tu solicitud ha sido procesada correctamente.'}
+            return render(request, 'verificationResult.html', context)
+        except TokenVerificacion.DoesNotExist:
+            context = {'title': 'Confirmación de contraseña', 'message': 'Confirmación fallida. Lo sentimos, Tu solicitud no ha sido procesada correctamente.'}
+            return render(request, 'verificationResult.html', context)
+        

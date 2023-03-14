@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Cambio de correo</title>
+  </head>
+  <body>
+    <h1>Cambio de correo</h1>
+    <h2>Hola {{name}}.</h2>
+    <p>Hemos recibido una solicitud para cambiar el correo electrónico de tu cuenta de Seproamérica</p>
+    <p>En caso que no hayas solicitado este cambio, por favor ignora este correo electrónico</p>
+    <p>Si no es así, por favor haz clic en el enlace de abajo para completar este proceso:</p>
+    <a href="{{ HOST_URL }}{% url 'newemailverification' token=verification_token %}">Clic aquí para cambiar tu correo electrónico</a>
+    <h3>Este enlace expirará en 24 horas </h3>
+    <p>Gracias por usar nuestro servicio.</p>
+  </body>
+</html>

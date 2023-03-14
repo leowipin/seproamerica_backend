@@ -98,4 +98,42 @@ class PasswordResetVerificacion(models.Model):
             self.expiry_date = timezone.now() + timezone.timedelta(hours=24)
         super().save(*args, **kwargs)
 
+class CambioCorreo(models.Model):
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    token = models.CharField(max_length=32, unique=True)
+    new_email = models.EmailField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expiry_date = models.DateTimeField()
+
+    def has_expired(self):
+        now = timezone.now()
+        return now > self.expiry_date
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.expiry_date = timezone.now() + timezone.timedelta(hours=24)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'users_cambio_correo'
+
+class CambioPassword(models.Model):
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    token = models.CharField(max_length=32, unique=True)
+    new_password = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expiry_date = models.DateTimeField()
+
+    def has_expired(self):
+        now = timezone.now()
+        return now > self.expiry_date
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.expiry_date = timezone.now() + timezone.timedelta(hours=24)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'users_cambio_password'
+
 

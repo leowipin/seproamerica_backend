@@ -22,4 +22,8 @@ urlpatterns = [
     path('groupList/', GroupListView.as_view(), name='grouplist'),
     path('passwordReset/', PasswordReset.as_view(), name='passwordreset'),
     path('changePassword/', ChangePassword.as_view(), name='changepassword'),
+    path('changeEmail/', ChangeEmail.as_view(), name='changeemail'),
+    path('newEmailVerification/<str:token>', VerifyNewEmail.as_view(), name='newemailverification'),
+    path('changeNewPassword/', ChangeNewPassword.as_view(), name='changenewpassword'),
+    path('newPasswordVerification/<str:token>', VerifyNewPassword.as_view(), name='newpasswordverification'),
 ]
