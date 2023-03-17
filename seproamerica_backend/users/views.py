@@ -229,14 +229,6 @@ class AdminView(APIView):
         else:
             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request):
-        user_id = request.data.get('id')
-        try:
-            user = Usuario.objects.get(id=user_id)
-        except Usuario.DoesNotExist:
-            return Response({'message': 'Personal administrativo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        user.delete()
-        return Response({'message': 'Personal administrativo eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
 
 class AdminListView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -356,14 +348,6 @@ class OperationalView(APIView):
         else:
             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request):
-        user_id = request.data.get('id')
-        try:
-            user = Usuario.objects.get(id=user_id)
-        except Usuario.DoesNotExist:
-            return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        user.delete()
-        return Response({'message': 'Empleado eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class OperationalListView(APIView):
