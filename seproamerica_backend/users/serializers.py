@@ -83,19 +83,19 @@ class PhoneUserSerializer(serializers.ModelSerializer):
         group_name = self.context['group_name']
         return self.create(validated_data, group_name)
     
-class PhoneUserPutSerializer(serializers.ModelSerializer):
+class PhoneInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ['email', 'password']
+        fields = ['id' ,'email', 'password', 'is_active']
+        extra_kwargs = {
+            'id': {'read_only': True}
+        }
 
 class PhoneAccountSerializer(serializers.ModelSerializer):
-     email = serializers.EmailField(read_only=True)
-     password = serializers.CharField(read_only=True)
-     user = serializers.PrimaryKeyRelatedField(queryset=Usuario.objects.all(), write_only=True)
      class Meta:
         model = CuentaTelefono
-        fields = ('email', 'password', 'user')
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):

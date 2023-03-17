@@ -14,6 +14,7 @@ urlpatterns = [
     path('operationalSignin/', OperationalSignInView.as_view(), name='operationalsignin'),
     path('operationalStaff/', OperationalView.as_view(), name='operationalstaff'),
     path('operationalList/', OperationalListView.as_view(), name='operationallist'),
+    path('personalList/', PersonalListView.as_view(), name='personallist'),
     path('verification/<str:token>', VerifyEmail.as_view(), name='verification'),
     path('group/', GroupView.as_view(), name='group'),
     path('getPermissions/', PermissionsView.as_view(), name='getpermissions'),

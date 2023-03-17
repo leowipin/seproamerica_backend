@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneUserPutSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono
 from rest_framework import status
 from .models import TokenVerificacion
@@ -377,6 +377,18 @@ class OperationalListView(APIView):
         serializer = UserSerializer(users_op, many=True)
         return Response(serializer.data)
     
+
+class PersonalListView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_personaloperativo', 'view_personaladministrativo']
+
+    def get(self, request):
+        queryset = Usuario.objects.filter(is_staff=True, dni__isnull=False, is_superuser=False)
+        serializer = UserSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
 class PhoneAccountView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -408,13 +420,13 @@ class PhoneAccountView(APIView):
     def get(self, request):
         phone_id = request.GET.get('id')
         phone = self.get_phone_by_id(phone_id)
-        serializer = PhoneAccountSerializer(phone)
+        serializer = PhoneInfoSerializer(phone)
         return Response(serializer.data)
     
     def put(self, request):
         phone_id = request.data.get('id')
         phone = self.get_phone_by_id(phone_id)
-        serializer = PhoneUserPutSerializer(phone, data=request.data, partial=True)
+        serializer = PhoneInfoSerializer(phone, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Cuenta modificada exitosamente'}, status=status.HTTP_200_OK)
@@ -426,8 +438,6 @@ class PhoneAccountView(APIView):
         return Response({'message': 'Cuenta eliminada correctamente.'},status=status.HTTP_204_NO_CONTENT)
         
 
-
-
 class PhoneAccountList(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -436,8 +446,9 @@ class PhoneAccountList(APIView):
     def get(self, request):
         phone = CuentaTelefono.objects.all()
         users_phone = Usuario.objects.filter(cuentatelefono__in=phone)
-        serializer = PhoneAccountSerializer(users_phone, many=True)
+        serializer = PhoneInfoSerializer(users_phone, many=True)
         return Response(serializer.data)
+
 
 class VerifyEmail(APIView):
     def get(self, request, token):

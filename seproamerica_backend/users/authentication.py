@@ -35,7 +35,7 @@ class JWTAuthentication(BaseAuthentication):
 
 
 class HasRequiredPermissions(BasePermission):
-    message = 'You do not have permission to access this resource.'
+    message = 'No tienes acceso para este recurso.'
 
     def has_permission(self, request, view):
         
