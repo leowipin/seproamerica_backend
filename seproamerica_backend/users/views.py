@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneUserPutSerializer
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono
 from rest_framework import status
 from .models import TokenVerificacion
 from django.template.loader import render_to_string
@@ -45,7 +45,7 @@ class SignUpView(APIView):
                 # send verification email
                 context = {'name': user.first_name, 'verification_token': verification_token, 'HOST_URL':settings.HOST_URL}
                 html_content = render_to_string('signupEmail.html', context)
-                subject = 'Welcome to Seproamérica!'
+                subject = 'Bienvenido Seproamérica!'
                 from_email = settings.DEFAULT_FROM_EMAIL
                 to = [user.email]
                 email = EmailMessage(subject, html_content, from_email, to)
@@ -259,7 +259,7 @@ class AdminClientView(APIView):
             client = Cliente.objects.select_related('user').get(user_id=user_id)
             return client
         except Cliente.DoesNotExist:
-            raise NotFound('Cliente no encontrado')
+            raise NotFound({'message': 'Cliente no encontrado.'})
         
     def get(self, request):
         user_id = request.GET.get('id')
@@ -299,11 +299,13 @@ class OperationalView(APIView):
 
     @transaction.atomic()
     def post(self, request):
-        userSerializer = SignUpSerializer(data = request.data, context={'group_name': request.data.get('group')})
+        request.data['password'] = 'empleado'
+        userSerializer = SignUpSerializer(data = request.data, context={'group_name': 'empleado'})
         if userSerializer.is_valid():
             user = userSerializer.save()
             user.is_staff = True
             user.is_operative = True
+            user.is_active = False
             user.save()
             request.data['user'] = user.id
             request.data['created_by'] = request.user
@@ -320,6 +322,7 @@ class OperationalView(APIView):
     def get(self, request):
         user_id = request.GET.get('id')
         try:
+            print(user_id)
             opstaff = PersonalOperativo.objects.select_related('user').get(user_id=user_id)
             serializer = OperationalInfoSerializer(opstaff)
             data = serializer.data
@@ -334,16 +337,6 @@ class OperationalView(APIView):
             user = Usuario.objects.get(id=user_id)
         except Usuario.DoesNotExist:
             return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        
-        group_name = request.data.get('group')
-        try:
-            group = Group.objects.get(name=group_name)
-        except Group.DoesNotExist:
-            return Response({'message': 'Grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        
-        user_group = User.groups.through.objects.get(usuario=user)
-        user_group.group_id = group.id
-        user_group.save()
         
         user_serializer = UserPutSerializer(user, data=request.data)
         if user_serializer.is_valid():
@@ -383,7 +376,68 @@ class OperationalListView(APIView):
         users_op = Usuario.objects.filter(personaloperativo__in=ops)
         serializer = UserSerializer(users_op, many=True)
         return Response(serializer.data)
+    
+class PhoneAccountView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_cuentatelefono","change_cuentatelefono","delete_cuentatelefono","view_cuentatelefono",]
 
+    def get_phone_by_id(self, phone_id):
+        try:
+            return Usuario.objects.get(id=phone_id)
+        except Usuario.DoesNotExist:
+            raise NotFound({'message': 'Cuenta no encontrada.'})
+    
+    @transaction.atomic()
+    def post(self, request):
+        serializer = PhoneUserSerializer(data=request.data, partial=True, context={'group_name': 'operador'})
+        serializer.is_valid(raise_exception=True)
+        serializer.is_operative = True
+        account = serializer.save()
+        account.is_operative = True
+        account.birthdate = None
+        account.address = None
+        account.gender = None
+        account.save()
+        request.data['user'] = account.id
+        serializer2 = PhoneAccountSerializer(data=request.data)
+        serializer2.is_valid(raise_exception=True)
+        serializer2.save()
+        return Response({'message': 'Cuenta creada correctamente.'}, status=status.HTTP_201_CREATED)
+    
+    def get(self, request):
+        phone_id = request.GET.get('id')
+        phone = self.get_phone_by_id(phone_id)
+        serializer = PhoneAccountSerializer(phone)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        phone_id = request.data.get('id')
+        phone = self.get_phone_by_id(phone_id)
+        serializer = PhoneUserPutSerializer(phone, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Cuenta modificada exitosamente'}, status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        phone_id = request.data.get('id')
+        phone = self.get_phone_by_id(phone_id)
+        phone.delete()
+        return Response({'message': 'Cuenta eliminada correctamente.'},status=status.HTTP_204_NO_CONTENT)
+        
+
+
+
+class PhoneAccountList(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_cuentatelefono']
+    
+    def get(self, request):
+        phone = CuentaTelefono.objects.all()
+        users_phone = Usuario.objects.filter(cuentatelefono__in=phone)
+        serializer = PhoneAccountSerializer(users_phone, many=True)
+        return Response(serializer.data)
 
 class VerifyEmail(APIView):
     def get(self, request, token):
@@ -494,12 +548,13 @@ class GroupListView(APIView):
         groups = Group.objects.all()
         group_list = []
         for group in groups:
-            group_type = GroupType.objects.get(group=group).type
-            group_list.append({
-                'id': group.id,
-                'name': group.name,
-                'group_type': group_type,
-            })
+            if not group.name == 'empleado':
+                group_type = GroupType.objects.get(group=group).type
+                group_list.append({
+                    'id': group.id,
+                    'name': group.name,
+                    'group_type': group_type,
+                })
         return Response(group_list)
 
 
@@ -583,9 +638,9 @@ class ChangePassword(APIView):
         try:
             token_instance = PasswordResetVerificacion.objects.get(token=token)
             if token_instance.has_expired():
-                return Response({'message': 'El token ha expirado'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'El código ha expirado'}, status=status.HTTP_400_BAD_REQUEST)
         except PasswordResetVerificacion.DoesNotExist:
-            return Response({'message': 'El token no es válido'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'El código no es válido'}, status=status.HTTP_400_BAD_REQUEST)
 
         user = token_instance.user
         user.set_password(password)
@@ -716,5 +771,8 @@ class VerifyNewPassword(APIView):
             return render(request, 'verificationResult.html', context)
         except TokenVerificacion.DoesNotExist:
             context = {'title': 'Confirmación de contraseña', 'message': 'Confirmación fallida. Lo sentimos, Tu solicitud no ha sido procesada correctamente.'}
+            return render(request, 'verificationResult.html', context)
+        except Exception as e:
+            context = {'title': 'Confirmación de correo', 'message': 'Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo más tarde.'}
             return render(request, 'verificationResult.html', context)
         

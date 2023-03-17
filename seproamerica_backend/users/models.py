@@ -10,15 +10,15 @@ from django.contrib.auth.models import Group
 class Usuario(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=False)
-    dni = models.CharField(max_length=20, unique=True)
-    birthdate = models.DateField(default=date.today)
+    dni = models.CharField(max_length=20, unique=True, default=None, null=True)
+    birthdate = models.DateField(default=date.today, null=True)
     GENDER_CHOICES = [
         ('masculino','masculino'),
         ('femenino','femenino'),
         ('indefinido','indefinido'),
     ]
-    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default='indefinido')
-    address = models.CharField(max_length=200, default='Ecuador')
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default='indefinido', null=True)
+    address = models.CharField(max_length=200, default='Ecuador', null=True)
     phone_number = models.CharField(max_length=20)
     isVerified = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
@@ -29,6 +29,11 @@ class Usuario(AbstractUser):
 class Cliente(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+class CuentaTelefono(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'users_cuenta_telefono'
 
 class GroupType(models.Model):
     TYPE_CHOICES = [

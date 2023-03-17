@@ -18,7 +18,7 @@ urlpatterns = [
     path('group/', GroupView.as_view(), name='group'),
     path('getPermissions/', PermissionsView.as_view(), name='getpermissions'),
     path('adminGroupList/', AdminGroupList.as_view(), name='admingrouplist'),
-    path('operationalGroupList/', OperationalGroupList.as_view(), name='operationalgrouplist'),
+    path('operationalGroupList/', OperationalGroupList.as_view(), name='operationalgrouplist'), #endpoint not used yet
     path('groupList/', GroupListView.as_view(), name='grouplist'),
     path('passwordReset/', PasswordReset.as_view(), name='passwordreset'),
     path('changePassword/', ChangePassword.as_view(), name='changepassword'),
@@ -26,4 +26,6 @@ urlpatterns = [
     path('newEmailVerification/<str:token>', VerifyNewEmail.as_view(), name='newemailverification'),
     path('changeNewPassword/', ChangeNewPassword.as_view(), name='changenewpassword'),
     path('newPasswordVerification/<str:token>', VerifyNewPassword.as_view(), name='newpasswordverification'),
+    path('phoneAccount/', PhoneAccountView.as_view(), name='phoneaccount'),
+    path('phoneAccountList/', PhoneAccountList.as_view(), name='phoneaccountlist'),
 ]

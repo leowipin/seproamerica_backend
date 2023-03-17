@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
-from .models import PersonalOperativo, PersonalAdministrativo, Cargo, Cliente, Sucursal, Usuario
+from .models import PersonalOperativo, PersonalAdministrativo, Cargo, Cliente, Sucursal, Usuario, CuentaTelefono
 
 User = get_user_model()
 
@@ -17,7 +17,8 @@ class SignUpSerializer(serializers.ModelSerializer):
     def create(self, validated_data, group_name):
         group = Group.objects.get(name=group_name)
         user = User.objects.create(**validated_data)
-        user.set_password(validated_data['password'])
+        if not group_name == 'empleado':
+            user.set_password(validated_data['password'])
         user.groups.add(group)
         return user
     def save(self):
@@ -64,6 +65,37 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ('id','name', 'permissions')
+
+class PhoneUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Usuario
+        fields = ['email', 'password']
+
+    def create(self, validated_data, group_name):
+        user = User.objects.create(**validated_data)
+        group = Group.objects.get(name=group_name)
+        user.groups.add(group)
+        return user
+    
+    def save(self):
+        validated_data = self.validated_data
+        group_name = self.context['group_name']
+        return self.create(validated_data, group_name)
+    
+class PhoneUserPutSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Usuario
+        fields = ['email', 'password']
+
+class PhoneAccountSerializer(serializers.ModelSerializer):
+     email = serializers.EmailField(read_only=True)
+     password = serializers.CharField(read_only=True)
+     user = serializers.PrimaryKeyRelatedField(queryset=Usuario.objects.all(), write_only=True)
+     class Meta:
+        model = CuentaTelefono
+        fields = ('email', 'password', 'user')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -130,7 +162,6 @@ class AdminInfoSerializer(serializers.ModelSerializer):
     gender = serializers.CharField(source='user.gender')
     address = serializers.CharField(source='user.address')
     phone_number = serializers.CharField(source='user.phone_number')
-    isVerified = serializers.BooleanField(source='user.isVerified')
     is_active = serializers.BooleanField(source='user.is_active')
     date_joined = serializers.DateTimeField(source='user.date_joined')
     charge = serializers.SlugRelatedField(queryset=Cargo.objects.all(), slug_field='name')
@@ -140,7 +171,7 @@ class AdminInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PersonalAdministrativo
-        fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'is_active', 'date_joined', 'start_date', 'final_date', 'charge', 'branch','group')
+        fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'is_active', 'date_joined', 'start_date', 'final_date', 'charge', 'branch','group')
 
 
 class OperationalStaffSerializer(serializers.ModelSerializer):
@@ -160,13 +191,11 @@ class OperationalInfoSerializer(serializers.ModelSerializer):
     gender = serializers.CharField(source='user.gender')
     address = serializers.CharField(source='user.address')
     phone_number = serializers.CharField(source='user.phone_number')
-    isVerified = serializers.BooleanField(source='user.isVerified')
     date_joined = serializers.DateTimeField(source='user.date_joined')
     charge = serializers.SlugRelatedField(queryset=Cargo.objects.all(), slug_field='name')
     branch = serializers.SlugRelatedField(queryset=Sucursal.objects.all(), slug_field='name')
     created_by = serializers.SlugRelatedField(queryset=Usuario.objects.all(), slug_field='email')
-    group = serializers.SlugRelatedField(queryset=Group.objects.all(), slug_field='name', source='user.groups.first')
 
     class Meta:
         model = PersonalOperativo
-        fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'date_joined', 'start_date', 'final_date', 'charge', 'branch', 'created_by','group')
+        fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'date_joined', 'start_date', 'final_date', 'charge', 'branch', 'created_by')
