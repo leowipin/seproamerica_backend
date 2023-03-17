@@ -378,15 +378,24 @@ class OperationalListView(APIView):
         return Response(serializer.data)
     
 
-class PersonalListView(APIView):
+class PersonalView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ['view_personaloperativo', 'view_personaladministrativo']
+    required_permissions = ['view_personaloperativo', 'view_personaladministrativo', 'delete_personaladministrativo', 'delete_personaloperativo']
 
     def get(self, request):
         queryset = Usuario.objects.filter(is_staff=True, dni__isnull=False, is_superuser=False)
         serializer = PersonalSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        user_id = request.data.get('id')
+        try:
+            user = Usuario.objects.get(id=user_id)
+        except Usuario.DoesNotExist:
+            return Response({'message': 'Personal no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        user.delete()
+        return Response({'message': 'Personal eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class PhoneAccountView(APIView):
