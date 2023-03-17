@@ -59,6 +59,11 @@ class ClientNamesSerializer(serializers.ModelSerializer):
         model= Usuario
         fields = ('first_name', 'last_name')
 
+class PersonalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ('id', 'first_name', 'last_name', 'email', 'phone_number', 'is_admin')
+
 class GroupSerializer(serializers.ModelSerializer):
     permissions = serializers.SlugRelatedField(many=True, queryset=Permission.objects.all(), slug_field='name')
 

@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono
 from rest_framework import status
 from .models import TokenVerificacion
@@ -385,10 +385,10 @@ class PersonalListView(APIView):
 
     def get(self, request):
         queryset = Usuario.objects.filter(is_staff=True, dni__isnull=False, is_superuser=False)
-        serializer = UserSerializer(queryset, many=True)
+        serializer = PersonalSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    
+
 class PhoneAccountView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
