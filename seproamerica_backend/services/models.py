@@ -17,5 +17,5 @@ class ServicioEquipamiento(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = 'servicio_equipamiento'
+        db_table = 'service_servicio_equipamiento'
 """

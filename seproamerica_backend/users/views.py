@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
 from rest_framework import status
 from .models import TokenVerificacion
 from django.template.loader import render_to_string
@@ -414,7 +414,7 @@ class PhoneAccountView(APIView):
         phone_id = request.GET.get('id')
         phone = self.get_phone_by_id(phone_id)
         serializer = PhoneInfoSerializer(phone)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request):
         phone_id = request.data.get('id')
@@ -440,7 +440,104 @@ class PhoneAccountList(APIView):
         phone = CuentaTelefono.objects.all()
         users_phone = Usuario.objects.filter(cuentatelefono__in=phone)
         serializer = PhoneInfoSerializer(users_phone, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class ChargeView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['add_cargo','change_cargo','delete_cargo','view_cargo']
+
+    def get_charge_by_id(self, charge_id):
+        try:
+            return Cargo.objects.get(id=charge_id)
+        except Cargo.DoesNotExist:
+            raise NotFound({'message': 'Cargo no encontrado.'})
+    
+    def post(self, request):
+        serializer = ChargeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Cargo creado exitosamente.'}, status=status.HTTP_201_CREATED)
+    
+    def get(self, request):
+        charge_id = request.GET.get('id')
+        charge = self.get_charge_by_id(charge_id)
+        serializer = ChargeSerializer(charge)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request):
+        charge_id = request.data.get('id')
+        charge = self.get_charge_by_id(charge_id)
+        serializer = ChargeSerializer(charge, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Cargo modificado exitosamente.'}, status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        charge_id = request.data.get('id')
+        charge = self.get_charge_by_id(charge_id)
+        charge.delete()
+        return Response({'message': 'Cargo eliminado exitosamente.'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+class ChargeListView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_cargo']
+    
+    def get(self, request):
+        charges = Cargo.objects.all()
+        serializer = ChargeSerializer(charges, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class BranchView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['add_sucursal','change_sucursal','delete_sucursal','view_sucursal']
+
+    def get_branch_by_id(self, branch_id):
+        try:
+            return Sucursal.objects.get(id=branch_id)
+        except Sucursal.DoesNotExist:
+            raise NotFound({'message': 'Sucursal no encontrada.'})
+
+    def post(self, request):
+        serializer = BranchSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Sucursal creada exitosamente.'}, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        branch_id = request.GET.get('id')
+        branch = self.get_branch_by_id(branch_id)
+        serializer = BranchSerializer(branch)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        branch_id = request.data.get('id')
+        branch = self.get_branch_by_id(branch_id)
+        serializer = BranchSerializer(branch, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Sucursal modificada exitosamente.'}, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        branch_id = request.data.get('id')
+        branch = self.get_branch_by_id(branch_id)
+        branch.delete()
+        return Response({'message': 'Sucursal eliminada exitosamente.'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+class BranchListView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ['view_sucursal']
+
+    def get(self, request):
+        sucursales = Sucursal.objects.all()
+        serializer = BranchSerializer(sucursales, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class VerifyEmail(APIView):

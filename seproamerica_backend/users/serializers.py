@@ -113,7 +113,7 @@ class ChargeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cargo
-        fields = '__all__'    
+        fields = ['id', 'name', 'description', 'type']    
     
 
 class BranchSerializer(serializers.ModelSerializer):
