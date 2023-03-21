@@ -17,7 +17,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     def create(self, validated_data, group_name):
         group = Group.objects.get(name=group_name)
         user = User.objects.create(**validated_data)
-        if not group_name == 'empleado':
+        if not group_name == 'empleado2':
             user.set_password(validated_data['password'])
         user.groups.add(group)
         return user
@@ -34,6 +34,24 @@ class SignInSerializer(serializers.Serializer):
         user = authenticate(**data)
         if not user:
             raise serializers.ValidationError('Correo o contraseña incorrectos')
+        return user
+    
+class SignInPhoneAccountSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        email = data.get('email')
+        password = data.get('password')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError('Correo o contraseña incorrectos')
+
+        if user.password != password:
+            raise serializers.ValidationError('Correo o contraseña incorrectos')
+
         return user
 # serializer needed to manage the data that an admin can modify of a personal    
 class UserPutSerializer(serializers.ModelSerializer):
@@ -58,6 +76,11 @@ class ClientNamesSerializer(serializers.ModelSerializer):
     class Meta:
         model= Usuario
         fields = ('first_name', 'last_name')
+
+class PhoneNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Usuario
+        fields = ('email',)
 
 class PersonalSerializer(serializers.ModelSerializer):
     class Meta:

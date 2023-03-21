@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, SignInPhoneAccountSerializer, PhoneNameSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
 from rest_framework import status
 from .models import TokenVerificacion
@@ -117,6 +117,22 @@ class ClientNamesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
+class PhoneEmailView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def get_phone(self, user_id):
+        return Usuario.objects.get(id=user_id)
+
+    def get(self, request):
+        phone_id = request.user
+        phone = self.get_phone(phone_id)
+        serializer = PhoneNameSerializer(phone)
+        email = serializer.data['email']
+        modified_email = email.split('@')[0]
+        response_data = {'email': modified_email}
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+
 class ClientListView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -143,16 +159,13 @@ class AdminSignInView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class OperationalSignInView(APIView):
+class PhoneAccountSignInView(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = SignInSerializer(data = request.data)
+        serializer = SignInPhoneAccountSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
 
         token = generate_token(user)
-
-        if not user.is_operative:
-            return Response({'message':'No tiene cuenta de personal operativo'}, status=status.HTTP_403_FORBIDDEN)
 
         return Response({
             "token": token
@@ -291,7 +304,7 @@ class OperationalView(APIView):
 
     @transaction.atomic()
     def post(self, request):
-        request.data['password'] = 'empleado'
+        #request.data['password'] = 'empleado'
         userSerializer = SignUpSerializer(data = request.data, context={'group_name': 'empleado'})
         if userSerializer.is_valid():
             user = userSerializer.save()
