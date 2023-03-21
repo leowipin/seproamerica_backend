@@ -56,10 +56,10 @@ class WeaponListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='equipment_id')
     model = serializers.CharField(source='equipment.model')
     brand = serializers.CharField(source='equipment.brand')
-    caliber = serializers.CharField(source='ammo.caliber')
+    ammo = serializers.CharField(source='ammo.caliber')
     class Meta:
         model = Armamento
-        fields = ('id','brand', 'model', 'category', 'caliber',)
+        fields = ('id','brand', 'model', 'category', 'ammo',)
 
 class AmmoSerializer(serializers.ModelSerializer):
 
