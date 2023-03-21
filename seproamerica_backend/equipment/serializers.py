@@ -115,4 +115,4 @@ class VehicleListSerializer(serializers.ModelSerializer):
     brand = serializers.CharField(source='equipment.brand')
     class Meta:
         model = Vehiculo
-        fields = ('id', 'brand', 'model', 'category')
+        fields = ('id', 'brand', 'model', 'category', 'plate')
