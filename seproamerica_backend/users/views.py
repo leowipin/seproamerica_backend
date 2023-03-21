@@ -123,7 +123,7 @@ class ClientListView(APIView):
     required_permissions = ['view_cliente']
 
     def get(self, request):
-        clients = Usuario.objects.filter(is_staff=False)
+        clients = Usuario.objects.filter(is_staff=False, dni__isnull=False)
         serializer = UserSerializer(clients, many=True)
         return Response(serializer.data)
 
