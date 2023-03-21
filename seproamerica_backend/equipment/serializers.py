@@ -90,7 +90,7 @@ class LockListSerializer(serializers.ModelSerializer):
     brand = serializers.CharField(source='equipment.brand')
     class Meta:
         model = Candado
-        fields = ('id', 'brand', 'model')
+        fields = ('id', 'brand', 'model', 'serial_number')
 
 # VEHICLE SERIALIZERS
 
