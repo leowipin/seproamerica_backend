@@ -104,7 +104,7 @@ class ClientView(APIView): # view for the actions that the client can perform fo
     def delete(self, request):
         user_id = request.user
         user = self.get_client(user_id)
-        password = request.data.get('password')
+        password = request.GET.get('password')
         hashed_password = user.password
         if not check_password(password, hashed_password):
             return Response({'message': 'Contraseña incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
