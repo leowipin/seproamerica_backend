@@ -101,6 +101,17 @@ class ClientView(APIView): # view for the actions that the client can perform fo
         serializer.save()
         return Response({'message': 'Datos modificados correctamente'}, status=status.HTTP_200_OK)
     
+    def delete(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        password = request.data.get('password')
+        hashed_password = user.password
+        if not check_password(password, hashed_password):
+            return Response({'message': 'Contraseña incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+        user.is_active = False
+        user.save()
+        return Response({'message': 'Cuenta eliminada exitosamente.'}, status=status.HTTP_200_OK)
+    
 
 
 class ClientNamesView(APIView):
