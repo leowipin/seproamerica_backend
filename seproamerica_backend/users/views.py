@@ -297,7 +297,7 @@ class AdminClientView(APIView):
         return Response({'message': 'Cliente modificado correctamente'}, status=status.HTTP_200_OK)
     
     def delete(self, request):
-        user_id = request.data.get('id')
+        user_id = request.GET.get('id')
         try:
             user = Usuario.objects.get(id=user_id)
         except Usuario.DoesNotExist:
@@ -397,7 +397,7 @@ class PersonalView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self, request):
-        user_id = request.data.get('id')
+        user_id = request.GET.get('id')
         try:
             user = Usuario.objects.get(id=user_id)
         except Usuario.DoesNotExist:
@@ -449,7 +449,7 @@ class PhoneAccountView(APIView):
         return Response({'message': 'Cuenta modificada exitosamente'}, status=status.HTTP_200_OK)
     
     def delete(self, request):
-        phone_id = request.data.get('id')
+        phone_id = request.GET.get('id')
         phone = self.get_phone_by_id(phone_id)
         phone.delete()
         return Response({'message': 'Cuenta eliminada correctamente.'},status=status.HTTP_204_NO_CONTENT)
@@ -499,7 +499,7 @@ class ChargeView(APIView):
         return Response({'message': 'Cargo modificado exitosamente.'}, status=status.HTTP_200_OK)
     
     def delete(self, request):
-        charge_id = request.data.get('id')
+        charge_id = request.GET.get('id')
         charge = self.get_charge_by_id(charge_id)
         charge.delete()
         return Response({'message': 'Cargo eliminado exitosamente.'}, status=status.HTTP_204_NO_CONTENT)
@@ -547,7 +547,7 @@ class BranchView(APIView):
         return Response({'message': 'Sucursal modificada exitosamente.'}, status=status.HTTP_200_OK)
 
     def delete(self, request):
-        branch_id = request.data.get('id')
+        branch_id = request.GET.get('id')
         branch = self.get_branch_by_id(branch_id)
         branch.delete()
         return Response({'message': 'Sucursal eliminada exitosamente.'}, status=status.HTTP_204_NO_CONTENT)
@@ -652,7 +652,7 @@ class GroupView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request):
-        group_id = request.data.get('id')
+        group_id = request.GET.get('id')
         if not group_id:
             return Response({'message': 'ID del grupo no enviado'}, status=status.HTTP_400_BAD_REQUEST)
 
