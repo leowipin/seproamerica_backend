@@ -315,7 +315,7 @@ class OperationalView(APIView):
 
     @transaction.atomic()
     def post(self, request):
-        #request.data['password'] = 'empleado'
+        request.data['password'] = 'empleado'
         userSerializer = SignUpSerializer(data = request.data, context={'group_name': 'empleado'})
         if userSerializer.is_valid():
             user = userSerializer.save()
