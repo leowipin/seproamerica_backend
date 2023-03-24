@@ -20,6 +20,7 @@ class Telefono(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=10, unique=True)
     color = models.CharField(max_length=20)
+    #fecha de compra
 
 class Vehiculo(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
@@ -27,6 +28,8 @@ class Vehiculo(models.Model):
     plate = models.CharField(max_length=20, unique=True)
     year = models.IntegerField()
     color = models.CharField(max_length=20)
+    #motor
+    #cilindraje
 
 
 class Municion(models.Model):
@@ -39,9 +42,12 @@ class Armamento(models.Model):
     serial_number = models.CharField(max_length=50)
     category = models.CharField(max_length=50)
     ammo = models.ForeignKey(Municion, on_delete=models.CASCADE)
+    #año
+    #color
 
 
 class Candado(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
     serial_number = models.CharField(max_length=50)
     color = models.CharField(max_length=20)
+    #proveedor
