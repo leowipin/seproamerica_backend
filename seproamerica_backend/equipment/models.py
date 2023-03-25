@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import Sucursal
+from datetime import date
 
 
 class Equipamiento(models.Model):
@@ -20,7 +21,7 @@ class Telefono(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=10, unique=True)
     color = models.CharField(max_length=20)
-    #fecha de compra
+    purchase_date = models.DateField()
 
 class Vehiculo(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
@@ -28,8 +29,8 @@ class Vehiculo(models.Model):
     plate = models.CharField(max_length=20, unique=True)
     year = models.IntegerField()
     color = models.CharField(max_length=20)
-    #motor
-    #cilindraje
+    engine = models.CharField(max_length=50)
+    gas_tank_capacity = models.DecimalField(max_digits=6, decimal_places=2) #LITROS
 
 
 class Municion(models.Model):
@@ -39,15 +40,15 @@ class Municion(models.Model):
 
 class Armamento(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
-    serial_number = models.CharField(max_length=50)
+    serial_number = models.CharField(max_length=50, unique=True)
     category = models.CharField(max_length=50)
     ammo = models.ForeignKey(Municion, on_delete=models.CASCADE)
-    #año
-    #color
+    year = models.IntegerField()
+    color = models.CharField(max_length=20)
 
 
 class Candado(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
-    serial_number = models.CharField(max_length=50)
+    serial_number = models.CharField(max_length=50, unique=True)
     color = models.CharField(max_length=20)
-    #proveedor
+    provider = models.CharField(max_length=50)

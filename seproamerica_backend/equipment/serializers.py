@@ -23,7 +23,10 @@ class PhoneInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Telefono
-        fields = ('id','branch','brand','model','phone_number','color')
+        fields = '__all__'
+        extra_kwargs = {
+            'equipment': {'write_only': True}
+        }
 
 class PhoneListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='equipment_id')
@@ -50,7 +53,10 @@ class WeaponInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Armamento
-        fields = ('id','branch', 'brand', 'model','serial_number','category','ammo')
+        fields = '__all__'
+        extra_kwargs = {
+            'equipment': {'write_only': True}
+        }
 
 class WeaponListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='equipment_id')
@@ -82,7 +88,10 @@ class LockInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Candado
-        fields = ('id', 'branch', 'brand', 'model', 'serial_number', 'color')
+        fields = '__all__'
+        extra_kwargs = {
+            'equipment': {'write_only': True}
+        }
 
 class LockListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='equipment_id')
@@ -107,7 +116,10 @@ class VehicleInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vehiculo
-        fields = ('id', 'branch', 'brand', 'model', 'category', 'plate', 'year', 'color')
+        fields = '__all__'
+        extra_kwargs = {
+            'equipment': {'write_only': True}
+        }
 
 class VehicleListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='equipment_id')

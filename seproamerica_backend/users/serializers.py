@@ -115,7 +115,7 @@ class PhoneInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ['id' ,'email', 'password', 'is_active']
+        fields = ['id' ,'email', 'first_name', 'password', 'is_active']
         extra_kwargs = {
             'id': {'read_only': True}
         }

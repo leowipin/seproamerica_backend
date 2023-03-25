@@ -423,6 +423,7 @@ class PhoneAccountView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.is_operative = True
         account = serializer.save()
+        account.first_name = request.data.get('first_name')
         account.is_operative = True
         account.birthdate = None
         account.address = None

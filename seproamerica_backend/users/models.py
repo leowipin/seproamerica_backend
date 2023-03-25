@@ -48,7 +48,8 @@ class GroupType(models.Model):
 class Cargo(models.Model):
     TYPE_CHOICES = [
         ('administrativo', 'administrativo'),
-        ('operativo', 'operativo')
+        ('operativo', 'operativo'),
+        ('servicios generales', 'servicios generales')
     ]
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField()
