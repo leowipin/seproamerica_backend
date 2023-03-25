@@ -15,7 +15,7 @@ class EquipmentView(APIView):
     required_permissions = ["delete_equipamiento",]
 
     def delete(self, request):
-        equipment_id = request.data.get('id')
+        equipment_id = request.GET.get('id')
         try:
             equipment = Equipamiento.objects.get(id=equipment_id)
         except Equipamiento.DoesNotExist:
@@ -245,7 +245,7 @@ class AmmoView(APIView):
         return Response({'message': 'Munición actualizada exitosamente.'}, status=status.HTTP_200_OK)
     
     def delete(self, request):
-        ammo = request.data.get('id')
+        ammo = request.GET.get('id')
         ammo = self.get_ammo_by_id(ammo)
         ammo.delete()
         return Response({'message': 'Munición eliminada exitosamente.'}, status=status.HTTP_204_NO_CONTENT)
