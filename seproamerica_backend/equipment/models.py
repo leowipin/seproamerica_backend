@@ -42,7 +42,7 @@ class Armamento(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
     serial_number = models.CharField(max_length=50, unique=True)
     category = models.CharField(max_length=50)
-    ammo = models.ForeignKey(Municion, on_delete=models.CASCADE)
+    ammo = models.ForeignKey(Municion, on_delete=models.SET_NULL, null=True, blank=True)
     year = models.IntegerField()
     color = models.CharField(max_length=20)
 
