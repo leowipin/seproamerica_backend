@@ -6,9 +6,14 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Servicio
         fields = '__all__'
+        
+class ServiceInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Servicio
+        fields = '__all__'
 
 class ServiceStaffSerializer(serializers.ModelSerializer):
-    staff = serializers.SlugRelatedField(queryset=Cargo.objects.all(), slug_field='name', write_only=True)
+    staff = serializers.SlugRelatedField(queryset=Cargo.objects.all(), slug_field='name')
     class Meta:
         model = ServicioTipoPersonal
         fields = '__all__'

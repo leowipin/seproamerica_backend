@@ -338,7 +338,6 @@ class OperationalView(APIView):
     def get(self, request):
         user_id = request.GET.get('id')
         try:
-            print(user_id)
             opstaff = PersonalOperativo.objects.select_related('user').get(user_id=user_id)
             serializer = OperationalInfoSerializer(opstaff)
             data = serializer.data
