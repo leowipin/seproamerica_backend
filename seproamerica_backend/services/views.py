@@ -108,3 +108,68 @@ class ServiceView(APIView):
         data['upper_limit3'] = upper_limit3
 
         return Response(data, status=status.HTTP_200_OK)
+    
+    @transaction.atomic()
+    def put(self, request):
+        service_id = request.data.get('id')
+        service = self.get_service_by_id(service_id)
+        service_serializer = ServiceSerializer(service, data=request.data, partial=True)
+        service_serializer.is_valid(raise_exception=True)
+        service_serializer.save()
+        # updating ServicioTipoPersonal model
+        service_staff = ServicioTipoPersonal.objects.filter(service_id = service_id)
+        staff = request.data.get('staff')
+        is_optional = request.data['is_optional']
+        staff_price_per_hour = request.data['staff_price_per_hour']
+        staff_base_hours = request.data['staff_base_hours']
+        staff_size = len(staff)
+        service_staff_size = len(service_staff)
+        for i in range(staff_size):
+            data = {
+                    'service': service_id,
+                    'staff': staff[i],
+                    'is_optional': is_optional[i],
+                    'staff_price_per_hour': staff_price_per_hour[i],
+                    'staff_base_hours': staff_base_hours[i],
+                }
+            if i <= service_staff_size-1:
+                serializer_staff = ServiceStaffSerializer(service_staff[i], data=data)
+                serializer_staff.is_valid(raise_exception=True)
+                serializer_staff.save()
+            elif i > service_staff_size-1:
+                serializer_staff = ServiceStaffSerializer(data=data, partial=True)
+                serializer_staff.is_valid(raise_exception=True)
+                serializer_staff.save()
+        if service_staff_size > staff_size:
+            for i in range(staff_size, service_staff_size):
+                service_staff[i].delete()
+        # updating ServicioTipoEquipamiento model
+        service_equipment = ServicioTipoEquipamiento.objects.filter(service_id = service_id)
+        equipment = request.data.get('equipment')
+        equipment_size = len(equipment)
+        service_equipment_size = len(service_equipment)
+        for i in range(equipment_size):
+            data = request.data
+            data['service'] = service_id
+            data['equipment_type'] = equipment[i]
+            if i <= service_equipment_size-1:
+                serializer_equipment = ServiceEquipmentSerializer(service_equipment[i], data=data)
+                serializer_equipment.is_valid(raise_exception=True)
+                serializer_equipment.save()
+            elif i > service_equipment_size-1:
+                serializer_equipment = ServiceEquipmentSerializer(data=data, partial=True)
+                serializer_equipment.is_valid(raise_exception=True)
+                serializer_equipment.save()
+        if service_equipment_size > equipment_size:
+            for i in range(equipment_size, service_equipment_size):
+                print(i)
+                service_equipment[i].delete()
+
+        return Response({'message': 'Servicio actualizado exitosamente.'}, status=status.HTTP_200_OK)
+        
+    def delete(self, request):
+        service_id = request.GET.get('id')
+        service = self.get_service_by_id(service_id)
+        service.delete()
+        return Response({'message': 'Servicio eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
+        #probar
