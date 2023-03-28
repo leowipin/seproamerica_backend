@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer
 from users.models import Cargo
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento
 from rest_framework.exceptions import NotFound
@@ -172,4 +172,13 @@ class ServiceView(APIView):
         service = self.get_service_by_id(service_id)
         service.delete()
         return Response({'message': 'Servicio eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
-        #probar
+    
+class ServiceNamesView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_servicio",]
+
+    def get(self, request):
+        services = Servicio.objects.all()
+        serializer = ServiceNamesSerializer(services, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

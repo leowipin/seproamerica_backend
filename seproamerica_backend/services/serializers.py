@@ -22,3 +22,8 @@ class ServiceEquipmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServicioTipoEquipamiento
         fields = '__all__'
+
+class ServiceNamesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Servicio
+        fields = ('id', 'name')
