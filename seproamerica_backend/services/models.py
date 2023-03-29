@@ -13,9 +13,10 @@ class Servicio(models.Model):
 class ServicioTipoPersonal(models.Model):
     service = models.ForeignKey(Servicio, on_delete=models.CASCADE)
     staff = models.ForeignKey(Cargo, on_delete=models.CASCADE)
-    is_optional = models.BooleanField()
-    staff_price_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
-    staff_base_hours = models.IntegerField()
+    staff_is_optional = models.BooleanField()
+    staff_number_is_optional = models.BooleanField()
+    staff_price_per_hour = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    staff_base_hours = models.IntegerField(null=True)
 
 class ServicioTipoEquipamiento(models.Model):
     service = models.ForeignKey(Servicio, on_delete=models.CASCADE)
@@ -26,8 +27,9 @@ class ServicioTipoEquipamiento(models.Model):
         ('candado', 'candado'),
     )
     equipment_type = models.CharField(max_length=20, choices=EQUIPMENT_TYPES, null=True)
-    vehicle_is_optional = models.BooleanField(null=True)
-    lock_is_optional = models.BooleanField(null=True)
+    equipment_is_optional = models.BooleanField()
+    equipment_number_is_optional = models.BooleanField()
+    equipment_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     price_range1 = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     price_range2 = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     price_range3 = models.DecimalField(max_digits=10, decimal_places=2, null=True)
@@ -37,4 +39,3 @@ class ServicioTipoEquipamiento(models.Model):
     lower_limit2 = models.IntegerField(null=True)
     upper_limit3 = models.IntegerField(null=True)
     lower_limit3 = models.IntegerField(null=True)
-    lock_price = models.DecimalField(max_digits=10, decimal_places=2, null=True)

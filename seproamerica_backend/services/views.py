@@ -12,9 +12,9 @@ from rest_framework.exceptions import NotFound
 
 
 class ServiceView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [HasRequiredPermissions]
-    required_permissions = ["add_servicio","change_servicio","delete_servicio","view_servicio",]
+    #authentication_classes = [JWTAuthentication]
+    #permission_classes = [HasRequiredPermissions]
+    #required_permissions = ["add_servicio","change_servicio","delete_servicio","view_servicio",]
 
     def get_service_by_id(self, service_id):
         try:
@@ -30,27 +30,36 @@ class ServiceView(APIView):
         service = service_serializer.save()
         # saving in service_staff model
         staff = request.data['staff']
-        is_optional = request.data['is_optional']
+        staff_is_optional = request.data['staff_is_optional']
+        staff_number_is_optional = request.data['staff_number_is_optional']
         staff_price_per_hour = request.data['staff_price_per_hour']
         staff_base_hours = request.data['staff_base_hours']
         for i in range(len(staff)):
             data = {
                 'service': service.id,
                 'staff': staff[i],
-                'is_optional': is_optional[i],
+                'staff_is_optional': staff_is_optional[i],
+                'staff_number_is_optional':staff_number_is_optional[i],
                 'staff_price_per_hour': staff_price_per_hour[i],
                 'staff_base_hours': staff_base_hours[i],
             }
-            serializer = ServiceStaffSerializer(data=data)
+            serializer = ServiceStaffSerializer(data=data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
         # saving in service_equipment model
         equipment = request.data['equipment']
-        for e in equipment:
+        equipment_is_optional = request.data['equipment_is_optional']
+        equipment_number_is_optional = request.data['equipment_number_is_optional']
+        equipment_price = request.data['equipment_price']
+        for i in range(len(equipment)):
             data = request.data
             data['service'] = service.id
-            data['equipment_type'] = e
-            serializer = ServiceEquipmentSerializer(data=data)
+            data['equipment_type'] = equipment[i]
+            data['equipment_is_optional'] = equipment_is_optional[i]
+            data['equipment_number_is_optional'] = equipment_number_is_optional[i]
+            data['equipment_price'] = equipment_price[i]
+
+            serializer = ServiceEquipmentSerializer(data=data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
@@ -64,27 +73,34 @@ class ServiceView(APIView):
         # getting the data of ServicioTipoPersonal model
         service_staff = ServicioTipoPersonal.objects.filter(service_id=service_id)
         staff = []
-        is_optional = []
+        staff_is_optional = []
+        staff_number_is_optional = []
         staff_price_per_hour = []
         staff_base_hours = []
         for ss in service_staff:
             charge = Cargo.objects.get(id=ss.staff_id)
             staff.append(charge.name)
-            is_optional.append(ss.is_optional)
+            staff_is_optional.append(ss.staff_is_optional)
+            staff_number_is_optional.append(ss.staff_number_is_optional)
             staff_price_per_hour.append(ss.staff_price_per_hour)
             staff_base_hours.append(ss.staff_base_hours)
         data['staff'] = staff
-        data['is_optional'] = is_optional
+        data['staff_is_optional'] = staff_is_optional
+        data['staff_number_is_optional'] = staff_number_is_optional
         data['staff_price_per_hour'] = staff_price_per_hour
         data['staff_base_hours'] = staff_base_hours
         # getting the data of ServicioTipoEquipamiento model
         service_equipment = ServicioTipoEquipamiento.objects.filter(service_id = service_id)
         equipment = []
-        vehicle_is_optional, lock_is_optional, price_range1, price_range2, price_range3, lower_limit1, upper_limit1, lower_limit2, upper_limit2, lower_limit3, upper_limit3 = [None] * 11
+        equipment_is_optional = []
+        equipment_number_is_optional = []
+        equipment_price = []
+        price_range1, price_range2, price_range3, lower_limit1, upper_limit1, lower_limit2, upper_limit2, lower_limit3, upper_limit3 = [None] * 9
         for se in service_equipment:
             equipment.append(se.equipment_type)
-            vehicle_is_optional = se.vehicle_is_optional
-            lock_is_optional = se.lock_is_optional
+            equipment_is_optional.append(se.equipment_is_optional)
+            equipment_number_is_optional.append(se.equipment_number_is_optional)
+            equipment_price.append(se.equipment_price)
             price_range1 = se.price_range1
             price_range2 = se.price_range2
             price_range3 = se.price_range3
@@ -95,8 +111,9 @@ class ServiceView(APIView):
             lower_limit3 = se.lower_limit3
             upper_limit3 = se.upper_limit3
         data['equipment'] = equipment
-        data['vehicle_is_optional'] = vehicle_is_optional
-        data['lock_is_optional'] = lock_is_optional
+        data['equipment_is_optional'] = equipment_is_optional
+        data['equipment_number_is_optional'] = equipment_number_is_optional
+        data['equipment_price'] = equipment_price
         data['price_range1'] = price_range1
         data['price_range2'] = price_range2
         data['price_range3'] = price_range3
@@ -119,7 +136,8 @@ class ServiceView(APIView):
         # updating ServicioTipoPersonal model
         service_staff = ServicioTipoPersonal.objects.filter(service_id = service_id)
         staff = request.data.get('staff')
-        is_optional = request.data['is_optional']
+        staff_is_optional = request.data['staff_is_optional']
+        staff_number_is_optional = request.data['staff_number_is_optional']
         staff_price_per_hour = request.data['staff_price_per_hour']
         staff_base_hours = request.data['staff_base_hours']
         staff_size = len(staff)
@@ -128,7 +146,8 @@ class ServiceView(APIView):
             data = {
                     'service': service_id,
                     'staff': staff[i],
-                    'is_optional': is_optional[i],
+                    'staff_is_optional': staff_is_optional[i],
+                    'staff_number_is_optional': staff_number_is_optional[i],
                     'staff_price_per_hour': staff_price_per_hour[i],
                     'staff_base_hours': staff_base_hours[i],
                 }
@@ -146,12 +165,18 @@ class ServiceView(APIView):
         # updating ServicioTipoEquipamiento model
         service_equipment = ServicioTipoEquipamiento.objects.filter(service_id = service_id)
         equipment = request.data.get('equipment')
+        equipment_is_optional = request.data.get('equipment_is_optional')
+        equipment_number_is_optional = request.data.get('equipment_number_is_optional')
+        equipment_price = request.data.get('equipment_price')
         equipment_size = len(equipment)
         service_equipment_size = len(service_equipment)
         for i in range(equipment_size):
             data = request.data
             data['service'] = service_id
             data['equipment_type'] = equipment[i]
+            data['equipment_is_optional'] = equipment_is_optional[i]
+            data['equipment_number_is_optional'] = equipment_number_is_optional[i]
+            data['equipment_price'] = equipment_price[i]
             if i <= service_equipment_size-1:
                 serializer_equipment = ServiceEquipmentSerializer(service_equipment[i], data=data)
                 serializer_equipment.is_valid(raise_exception=True)
@@ -174,9 +199,9 @@ class ServiceView(APIView):
         return Response({'message': 'Servicio eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
     
 class ServiceNamesView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [HasRequiredPermissions]
-    required_permissions = ["view_servicio",]
+    #authentication_classes = [JWTAuthentication]
+    #permission_classes = [HasRequiredPermissions]
+    #required_permissions = ["view_servicio",]
 
     def get(self, request):
         services = Servicio.objects.all()
