@@ -12,9 +12,9 @@ from rest_framework.exceptions import NotFound
 
 
 class ServiceView(APIView):
-    #authentication_classes = [JWTAuthentication]
-    #permission_classes = [HasRequiredPermissions]
-    #required_permissions = ["add_servicio","change_servicio","delete_servicio","view_servicio",]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_servicio","change_servicio","delete_servicio","view_servicio",]
 
     def get_service_by_id(self, service_id):
         try:
@@ -199,9 +199,9 @@ class ServiceView(APIView):
         return Response({'message': 'Servicio eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
     
 class ServiceNamesView(APIView):
-    #authentication_classes = [JWTAuthentication]
-    #permission_classes = [HasRequiredPermissions]
-    #required_permissions = ["view_servicio",]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_servicio",]
 
     def get(self, request):
         services = Servicio.objects.all()
