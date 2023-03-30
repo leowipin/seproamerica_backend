@@ -131,6 +131,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ('id', 'first_name', 'last_name', 'email', 'phone_number')
 
+class StaffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ('id', 'first_name', 'last_name', 'email', 'phone_number', 'is_admin')
 
 class ChargeSerializer(serializers.ModelSerializer):
 

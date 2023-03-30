@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, SignInPhoneAccountSerializer, PhoneNameSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, SignInPhoneAccountSerializer, PhoneNameSerializer, StaffSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
 from rest_framework import status
 from .models import TokenVerificacion
@@ -262,7 +262,7 @@ class AdminListView(APIView):
     def get(self, request):
         admins = PersonalAdministrativo.objects.all()
         users_admins = Usuario.objects.filter(personaladministrativo__in=admins)
-        serializer = UserSerializer(users_admins, many=True)
+        serializer = StaffSerializer(users_admins, many=True)
         return Response(serializer.data)
 
 class AdminClientView(APIView):
@@ -381,7 +381,7 @@ class OperationalListView(APIView):
     def get(self, request):
         ops = PersonalOperativo.objects.all()
         users_op = Usuario.objects.filter(personaloperativo__in=ops)
-        serializer = UserSerializer(users_op, many=True)
+        serializer = StaffSerializer(users_op, many=True)
         return Response(serializer.data)
     
 
