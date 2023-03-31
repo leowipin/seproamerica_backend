@@ -8,7 +8,7 @@ class Equipamiento(models.Model):
         ('móbil', 'móbil'),
         ('vehículo', 'vehículo'),
         ('armamento', 'armamento'),
-        ('candado', 'candado'),
+        ('candado satelital', 'candado satelital'),
     )
     type = models.CharField(max_length=20, choices=EQUIPMENT_TYPES)
     branch = models.ForeignKey(Sucursal, on_delete=models.CASCADE)

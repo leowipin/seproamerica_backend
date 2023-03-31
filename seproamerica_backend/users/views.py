@@ -128,7 +128,7 @@ class ClientNamesView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-class PhoneEmailView(APIView):
+class PhoneNameView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def get_phone(self, user_id):
@@ -138,9 +138,8 @@ class PhoneEmailView(APIView):
         phone_id = request.user
         phone = self.get_phone(phone_id)
         serializer = PhoneNameSerializer(phone)
-        email = serializer.data['email']
-        modified_email = email.split('@')[0]
-        response_data = {'email': modified_email}
+        first_name = serializer.data['first_name']
+        response_data = {'first_name': first_name}
         return Response(response_data, status=status.HTTP_200_OK)
     
 
@@ -172,7 +171,7 @@ class AdminSignInView(APIView):
 
 class PhoneAccountSignInView(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = SignInPhoneAccountSerializer(data = request.data)
+        serializer = SignInSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
 
@@ -234,7 +233,8 @@ class AdminView(APIView):
         user_group = User.groups.through.objects.get(usuario=user)
         user_group.group_id = group.id
         user_group.save()
-        
+        hashed_password = make_password(request.data.get('password'))
+        request.data['password'] = hashed_password
         user_serializer = UserPutSerializer(user, data=request.data)
         if user_serializer.is_valid():
             user = user_serializer.save()
@@ -418,7 +418,7 @@ class PhoneAccountView(APIView):
     
     @transaction.atomic()
     def post(self, request):
-        serializer = PhoneUserSerializer(data=request.data, partial=True, context={'group_name': 'operador'})
+        serializer = SignUpSerializer(data=request.data, partial=True, context={'group_name': 'operador'})
         serializer.is_valid(raise_exception=True)
         serializer.is_operative = True
         account = serializer.save()
@@ -443,6 +443,8 @@ class PhoneAccountView(APIView):
     def put(self, request):
         phone_id = request.data.get('id')
         phone = self.get_phone_by_id(phone_id)
+        hashed_password = make_password(request.data.get('password'))
+        request.data['password'] = hashed_password
         serializer = PhoneInfoSerializer(phone, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()

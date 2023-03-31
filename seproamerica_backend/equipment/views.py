@@ -96,11 +96,11 @@ class LockView(APIView):
         try:
             return Equipamiento.objects.get(id=lock_id)
         except Equipamiento.DoesNotExist:
-            raise NotFound({'message': 'Candado no encontrado.'})
+            raise NotFound({'message': 'Candado satelital no encontrado.'})
         
     @transaction.atomic()
     def post(self, request):
-        request.data['type']='candado'
+        request.data['type']='candado satelital'
         equipment_serializer = EquipmentSerializer(data=request.data)
         equipment_serializer.is_valid(raise_exception=True)
         equipment = equipment_serializer.save()
@@ -109,7 +109,7 @@ class LockView(APIView):
         lock_serializer.is_valid(raise_exception=True)
         lock = lock_serializer.save()
 
-        return Response({'message': 'Candado creado con éxito'}, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Candado satelital creado con éxito'}, status=status.HTTP_201_CREATED)
     
     def get(self, request):
         equipment_id = request.GET.get('id')
@@ -120,7 +120,7 @@ class LockView(APIView):
             data['id'] = equipment_id
             return Response(data,  status=status.HTTP_200_OK)
         except Vehiculo.DoesNotExist:
-            return Response({'message': 'Candado no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Candado satelital no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
     
     @transaction.atomic()
     def put(self, request):
@@ -133,19 +133,19 @@ class LockView(APIView):
         try:
             lock = Candado.objects.get(equipment=equipment_save)
         except Candado.DoesNotExist:
-            return Response({'message': 'Candado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'Candado satelital no encontrado'}, status=status.HTTP_404_NOT_FOUND)
         lock_serializer = LockSerializer(lock, data=request.data)
         lock_serializer.is_valid(raise_exception=True)
         lock = lock_serializer.save()
 
-        return Response({'message': 'Candado actualizado con éxito'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Candado satelital actualizado con éxito'}, status=status.HTTP_200_OK)
 
 class LockListView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["view_candado",]
     def get(self, request):
-        locks = Candado.objects.filter(equipment__type='candado')
+        locks = Candado.objects.filter(equipment__type='candado satelital')
         serializer = LockListSerializer(locks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK) 
 
@@ -323,3 +323,32 @@ class PhoneListView(APIView):
         phones = Telefono.objects.filter(equipment__type='móbil')
         serializer = PhoneListSerializer(phones, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class CategoryView(APIView):
+    def get(self, request):
+        data = {
+            "categories": ["Automóvil", "Motocicleta", "Camioneta", "Furgoneta",  "Todo terreno"]
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+class ColorView(APIView):
+    def get(self, request):
+        data = {
+            "colors": ["plateado", "blanco", "negro", "azul", "rojo", "verde"]
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+class BrandVehicleView(APIView):
+    def get(self, request):
+        data = {
+            "brands": ["Chevrolet", "Toyota", "Nissan", "Kia", "Hyundai", "Mazda", "Renault", "Ford", "Chery"]
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+class EngineView(APIView):
+    def get(self, request):
+        data = {
+            "engines": ["Gasolina", "Diésel", "Híbrido", "Eléctrico"]
+        }
+        return Response(data, status=status.HTTP_200_OK)

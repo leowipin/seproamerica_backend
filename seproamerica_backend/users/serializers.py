@@ -17,8 +17,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     def create(self, validated_data, group_name):
         group = Group.objects.get(name=group_name)
         user = User.objects.create(**validated_data)
-        if not group_name == 'empleado2':
-            user.set_password(validated_data['password'])
+        user.set_password(validated_data['password'])
         user.groups.add(group)
         return user
     def save(self):
@@ -57,7 +56,7 @@ class SignInPhoneAccountSerializer(serializers.Serializer):
 class UserPutSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'phone_number', 'dni', 'birthdate', 'gender', 'address', 'isVerified', 'is_active', 'date_joined')
+        fields = ('email','password', 'first_name', 'last_name', 'phone_number', 'dni', 'birthdate', 'gender', 'address', 'isVerified', 'is_active', 'date_joined')
 
 # serializer needed to manage the data that an admin can modify of a client
 class ClientPutSerializer(serializers.ModelSerializer):
@@ -80,7 +79,7 @@ class ClientNamesSerializer(serializers.ModelSerializer):
 class PhoneNameSerializer(serializers.ModelSerializer):
     class Meta:
         model= Usuario
-        fields = ('email',)
+        fields = ('first_name',)
 
 class PersonalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -117,7 +116,8 @@ class PhoneInfoSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id' ,'email', 'first_name', 'password', 'is_active']
         extra_kwargs = {
-            'id': {'read_only': True}
+            'id': {'read_only': True},
+            'password': {'write_only': True}
         }
 
 class PhoneAccountSerializer(serializers.ModelSerializer):
