@@ -65,67 +65,6 @@ class ServiceView(APIView):
 
         return Response({'message': 'Servicio creado exitosamente.'}, status=status.HTTP_200_OK)
     
-    def get(self, request):
-        service_id = request.GET.get('id')
-        service = self.get_service_by_id(service_id)
-        serializer = ServiceInfoSerializer(service)
-        data = serializer.data
-        # getting the data of ServicioTipoPersonal model
-        service_staff = ServicioTipoPersonal.objects.filter(service_id=service_id)
-        staff = []
-        staff_is_optional = []
-        staff_number_is_optional = []
-        staff_price_per_hour = []
-        staff_base_hours = []
-        for ss in service_staff:
-            charge = Cargo.objects.get(id=ss.staff_id)
-            staff.append(charge.name)
-            staff_is_optional.append(ss.staff_is_optional)
-            staff_number_is_optional.append(ss.staff_number_is_optional)
-            staff_price_per_hour.append(ss.staff_price_per_hour)
-            staff_base_hours.append(ss.staff_base_hours)
-        data['staff'] = staff
-        data['staff_is_optional'] = staff_is_optional
-        data['staff_number_is_optional'] = staff_number_is_optional
-        data['staff_price_per_hour'] = staff_price_per_hour
-        data['staff_base_hours'] = staff_base_hours
-        # getting the data of ServicioTipoEquipamiento model
-        service_equipment = ServicioTipoEquipamiento.objects.filter(service_id = service_id)
-        equipment = []
-        equipment_is_optional = []
-        equipment_number_is_optional = []
-        equipment_price = []
-        price_range1, price_range2, price_range3, lower_limit1, upper_limit1, lower_limit2, upper_limit2, lower_limit3, upper_limit3 = [None] * 9
-        for se in service_equipment:
-            equipment.append(se.equipment_type)
-            equipment_is_optional.append(se.equipment_is_optional)
-            equipment_number_is_optional.append(se.equipment_number_is_optional)
-            equipment_price.append(se.equipment_price)
-            price_range1 = se.price_range1
-            price_range2 = se.price_range2
-            price_range3 = se.price_range3
-            lower_limit1 = se.lower_limit1
-            upper_limit1 = se.upper_limit1
-            lower_limit2 = se.lower_limit2
-            upper_limit2 = se.upper_limit2
-            lower_limit3 = se.lower_limit3
-            upper_limit3 = se.upper_limit3
-        data['equipment'] = equipment
-        data['equipment_is_optional'] = equipment_is_optional
-        data['equipment_number_is_optional'] = equipment_number_is_optional
-        data['equipment_price'] = equipment_price
-        data['price_range1'] = price_range1
-        data['price_range2'] = price_range2
-        data['price_range3'] = price_range3
-        data['lower_limit1'] = lower_limit1
-        data['upper_limit1'] = upper_limit1
-        data['lower_limit2'] = lower_limit2
-        data['upper_limit2'] = upper_limit2
-        data['lower_limit3'] = lower_limit3
-        data['upper_limit3'] = upper_limit3
-
-        return Response(data, status=status.HTTP_200_OK)
-    
     @transaction.atomic()
     def put(self, request):
         service_id = request.data.get('id')
@@ -207,3 +146,75 @@ class ServiceNamesView(APIView):
         services = Servicio.objects.all()
         serializer = ServiceNamesSerializer(services, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ServiceGetView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_servicio",]
+
+    def get_service_by_id(self, service_id):
+        try:
+            return Servicio.objects.get(id=service_id)
+        except Servicio.DoesNotExist:
+            raise NotFound({'message': 'Servicio no encontrado.'})
+
+    def get(self, request):
+        service_id = request.GET.get('id')
+        service = self.get_service_by_id(service_id)
+        serializer = ServiceInfoSerializer(service)
+        data = serializer.data
+        # getting the data of ServicioTipoPersonal model
+        service_staff = ServicioTipoPersonal.objects.filter(service_id=service_id)
+        staff = []
+        staff_is_optional = []
+        staff_number_is_optional = []
+        staff_price_per_hour = []
+        staff_base_hours = []
+        for ss in service_staff:
+            charge = Cargo.objects.get(id=ss.staff_id)
+            staff.append(charge.name)
+            staff_is_optional.append(ss.staff_is_optional)
+            staff_number_is_optional.append(ss.staff_number_is_optional)
+            staff_price_per_hour.append(ss.staff_price_per_hour)
+            staff_base_hours.append(ss.staff_base_hours)
+        data['staff'] = staff
+        data['staff_is_optional'] = staff_is_optional
+        data['staff_number_is_optional'] = staff_number_is_optional
+        data['staff_price_per_hour'] = staff_price_per_hour
+        data['staff_base_hours'] = staff_base_hours
+        # getting the data of ServicioTipoEquipamiento model
+        service_equipment = ServicioTipoEquipamiento.objects.filter(service_id = service_id)
+        equipment = []
+        equipment_is_optional = []
+        equipment_number_is_optional = []
+        equipment_price = []
+        price_range1, price_range2, price_range3, lower_limit1, upper_limit1, lower_limit2, upper_limit2, lower_limit3, upper_limit3 = [None] * 9
+        for se in service_equipment:
+            equipment.append(se.equipment_type)
+            equipment_is_optional.append(se.equipment_is_optional)
+            equipment_number_is_optional.append(se.equipment_number_is_optional)
+            equipment_price.append(se.equipment_price)
+            price_range1 = se.price_range1
+            price_range2 = se.price_range2
+            price_range3 = se.price_range3
+            lower_limit1 = se.lower_limit1
+            upper_limit1 = se.upper_limit1
+            lower_limit2 = se.lower_limit2
+            upper_limit2 = se.upper_limit2
+            lower_limit3 = se.lower_limit3
+            upper_limit3 = se.upper_limit3
+        data['equipment'] = equipment
+        data['equipment_is_optional'] = equipment_is_optional
+        data['equipment_number_is_optional'] = equipment_number_is_optional
+        data['equipment_price'] = equipment_price
+        data['price_range1'] = price_range1
+        data['price_range2'] = price_range2
+        data['price_range3'] = price_range3
+        data['lower_limit1'] = lower_limit1
+        data['upper_limit1'] = upper_limit1
+        data['lower_limit2'] = lower_limit2
+        data['upper_limit2'] = upper_limit2
+        data['lower_limit3'] = lower_limit3
+        data['upper_limit3'] = upper_limit3
+
+        return Response(data, status=status.HTTP_200_OK)
