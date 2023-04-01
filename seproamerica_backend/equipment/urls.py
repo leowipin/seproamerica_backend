@@ -1,5 +1,5 @@
 from django.urls import path
-from equipment.views import EquipmentView, PhoneView, PhoneListView, AmmoView, AmmoListView, WeaponView, WeaponListView, LockView, LockListView, VehicleView, VehicleListView, CategoryView, ColorView, BrandVehicleView, EngineView
+from equipment.views import EquipmentView, PhoneView, PhoneListView, AmmoView, AmmoListView, WeaponView, WeaponListView, LockView, LockListView, VehicleView, VehicleListView, CategoryView, ColorView, BrandVehicleView, EngineView, BrandPhoneView, BrandWeaponView, WeaponTypeView
 
 urlpatterns = [
     path('equipment/', EquipmentView.as_view(), name='equipment'),
@@ -17,4 +17,7 @@ urlpatterns = [
     path('color/', ColorView.as_view(), name='color'),
     path('brandVehicle/', BrandVehicleView.as_view(), name='brandvehicle'),
     path('engine/', EngineView.as_view(), name='engine'),
+    path('brandPhone/', BrandPhoneView.as_view(), name='brandphone'),
+    path('brandWeapon/', BrandWeaponView.as_view(), name='brandweapon'),
+    path('weaponTypes/', WeaponTypeView.as_view(), name='weapontypes'),
 ]

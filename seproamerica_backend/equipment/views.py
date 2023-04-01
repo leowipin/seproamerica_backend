@@ -326,6 +326,9 @@ class PhoneListView(APIView):
     
     
 class CategoryView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_vehiculo",]
     def get(self, request):
         data = {
             "categories": ["Automóvil", "Motocicleta", "Camioneta", "Furgoneta",  "Todo terreno"]
@@ -333,6 +336,9 @@ class CategoryView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 class ColorView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_equipamiento",]
     def get(self, request):
         data = {
             "colors": ["plateado", "blanco", "negro", "azul", "rojo", "verde"]
@@ -340,6 +346,9 @@ class ColorView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 class BrandVehicleView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_vehiculo",]
     def get(self, request):
         data = {
             "brands": ["Chevrolet", "Toyota", "Nissan", "Kia", "Hyundai", "Mazda", "Renault", "Ford", "Chery"]
@@ -347,8 +356,41 @@ class BrandVehicleView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 class EngineView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_vehiculo",]
     def get(self, request):
         data = {
             "engines": ["Gasolina", "Diésel", "Híbrido", "Eléctrico"]
+        }
+        return Response(data, status=status.HTTP_200_OK)
+    
+class BrandPhoneView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_telefono",]
+    def get(self, request):
+        data = {
+            "brands": ["Samsung", "Apple", "Xiaomi", "Motorola"]
+        }
+        return Response(data, status=status.HTTP_200_OK)
+    
+class BrandWeaponView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_armamento",]
+    def get(self, request):
+        data = {
+            "brands": ["Glock", "Sig Sauer", "Beretta", "Colt", "Smith & Wesson", "Heckler & Koch", "FN Herstal", "Remington", "Mossberg", "Ruger"]
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+class WeaponTypeView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_armamento",]
+    def get(self, request):
+        data = {
+            "weapon_type": ["Pistolas","Revólveres","Rifles","Escopetas","Ametralladoras","Fusiles de asalto","Armas de francotirador","Subfusiles","Pistolas ametralladoras","Escopetas de corredera"]
         }
         return Response(data, status=status.HTTP_200_OK)
