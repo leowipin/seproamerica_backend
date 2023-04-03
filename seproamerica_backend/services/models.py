@@ -9,6 +9,7 @@ class Servicio(models.Model):
     name = models.CharField(max_length=100, unique=True, blank=False, null=False)
     description = models.TextField()
     set_price = models.BooleanField(default=False)
+    requires_origin_and_destination = models.BooleanField()
 
 class ServicioTipoPersonal(models.Model):
     service = models.ForeignKey(Servicio, on_delete=models.CASCADE)
