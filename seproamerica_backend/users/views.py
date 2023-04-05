@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, UserPutSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneUserSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, SignInPhoneAccountSerializer, PhoneNameSerializer, StaffSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
 from rest_framework import status
 from .models import TokenVerificacion
@@ -235,7 +235,7 @@ class AdminView(APIView):
         user_group.save()
         hashed_password = make_password(request.data.get('password'))
         request.data['password'] = hashed_password
-        user_serializer = UserPutSerializer(user, data=request.data)
+        user_serializer = AdminPutSerializer(user, data=request.data)
         if user_serializer.is_valid():
             user = user_serializer.save()
             request.data['user'] = user.id
@@ -353,7 +353,7 @@ class OperationalView(APIView):
         except Usuario.DoesNotExist:
             return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
         
-        user_serializer = UserPutSerializer(user, data=request.data)
+        user_serializer = OperationalPutSerializer(user, data=request.data)
         if user_serializer.is_valid():
             user = user_serializer.save()
             request.data['user'] = user.id

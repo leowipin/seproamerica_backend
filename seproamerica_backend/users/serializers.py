@@ -53,11 +53,15 @@ class SignInPhoneAccountSerializer(serializers.Serializer):
 
         return user
 # serializer needed to manage the data that an admin can modify of a personal    
-class UserPutSerializer(serializers.ModelSerializer):
+class AdminPutSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email','password', 'first_name', 'last_name', 'phone_number', 'dni', 'birthdate', 'gender', 'address', 'isVerified', 'is_active', 'date_joined')
 
+class OperationalPutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'phone_number', 'dni', 'birthdate', 'gender', 'address', 'isVerified', 'is_active', 'date_joined')
 # serializer needed to manage the data that an admin can modify of a client
 class ClientPutSerializer(serializers.ModelSerializer):
     class Meta:
