@@ -14,7 +14,7 @@ from rest_framework.exceptions import NotFound
 class ServiceView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ["add_servicio","change_servicio","delete_servicio","view_servicio",]
+    required_permissions = ["add_servicio","change_servicio","delete_servicio"]
 
     def get_service_by_id(self, service_id):
         try:
@@ -218,3 +218,14 @@ class ServiceGetView(APIView):
         data['upper_limit3'] = upper_limit3
 
         return Response(data, status=status.HTTP_200_OK)
+    
+
+class OrderView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_pedido","change_pedido","delete_pedido","view_pedido",]
+
+    def post(self, request):
+        
+        pass
+    pass

@@ -152,7 +152,7 @@ class BranchSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
-    last_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
     dni = serializers.CharField(source='user.dni')
     birthdate = serializers.DateField(source='user.birthdate')
@@ -187,7 +187,7 @@ class AdminStaffSerializer(serializers.ModelSerializer):
 
 class AdminInfoSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
-    last_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
     dni = serializers.CharField(source='user.dni')
     birthdate = serializers.DateField(source='user.birthdate')
@@ -216,7 +216,7 @@ class OperationalStaffSerializer(serializers.ModelSerializer):
 
 class OperationalInfoSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
-    last_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
     dni = serializers.CharField(source='user.dni')
     birthdate = serializers.DateField(source='user.birthdate')
