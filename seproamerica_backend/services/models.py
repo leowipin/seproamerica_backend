@@ -10,6 +10,7 @@ class Servicio(models.Model):
     description = models.TextField()
     set_price = models.BooleanField(default=False)
     requires_origin_and_destination = models.BooleanField()
+    base_price= models.DecimalField(max_digits=10, decimal_places=2)
 
 class ServicioTipoPersonal(models.Model):
     service = models.ForeignKey(Servicio, on_delete=models.CASCADE)
@@ -49,6 +50,7 @@ class Pedido(models.Model):
     start_time = models.TimeField()
     end_date = models.DateField()
     end_time = models.TimeField()
+    duration = models.DecimalField(max_digits=4, decimal_places=1) #hour
     price = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=100)
     status = models.CharField(max_length=100)
