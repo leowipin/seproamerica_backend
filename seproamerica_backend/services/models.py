@@ -62,8 +62,8 @@ class Pedido(models.Model):
 class PedidoPersonal(models.Model):
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
     staff = models.ForeignKey(Cargo, on_delete=models.CASCADE)
-    is_required = models.BooleanField()
-    staff_number_is_optional = models.BooleanField()
+    #is_required = models.BooleanField()
+    #staff_number_is_optional = models.BooleanField()
     staff_number = models.IntegerField(null=True, blank=True)
 
 class PedidoEquipamiento(models.Model):
@@ -75,8 +75,8 @@ class PedidoEquipamiento(models.Model):
     )
     equipment_type = models.CharField(max_length=20, choices=EQUIPMENT_TYPES, null=True)
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
-    is_required = models.BooleanField()
-    equipment_number_is_optional = models.BooleanField()
+    #is_required = models.BooleanField()
+    #equipment_number_is_optional = models.BooleanField()
     equipment_number = models.IntegerField(null=True, blank=True)
 
 class PersonalAsignado(models.Model):
