@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer
-from users.models import Cargo
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer
+from users.models import Cargo, Cliente
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento
 from rest_framework.exceptions import NotFound
 
@@ -191,6 +191,7 @@ class ServiceGetView(APIView):
         price_range1, price_range2, price_range3, lower_limit1, upper_limit1, lower_limit2, upper_limit2, lower_limit3, upper_limit3 = [None] * 9
         for se in service_equipment:
             equipment.append(se.equipment_type)
+            print(se.equipment_type)
             equipment_is_optional.append(se.equipment_is_optional)
             equipment_number_is_optional.append(se.equipment_number_is_optional)
             equipment_price.append(se.equipment_price)
@@ -220,12 +221,57 @@ class ServiceGetView(APIView):
         return Response(data, status=status.HTTP_200_OK)
     
 
-class OrderView(APIView):
+class OrderClientView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ["add_pedido","change_pedido","delete_pedido","view_pedido",]
+    required_permissions = ["add_pedido","delete_pedido","view_pedido",]
 
     def post(self, request):
-        
-        pass
-    pass
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        data = request.data.copy()
+        data['client'] = client.id
+        serializerOrder = OrderSerializer(data=data)
+        serializerOrder.is_valid(raise_exception=True)
+        order = serializerOrder.save()
+
+        for i in range(len(data['staff'])):
+            staff_name  = data['staff'][i]
+            staff = Cargo.objects.get(name=staff_name).id
+            staff_is_optional = data['staff_is_optional'][i]
+            staff_selected = data['staff_selected'][i]
+            staff_number_optional = data['staff_number_optional'][i]
+            staff_number = data['staff_number'][i]
+
+            pedidoPersonalData = {
+                'order': order.id,
+                'staff': staff,
+                'staff_is_optional': staff_is_optional,
+                'staff_selected': staff_selected,
+                'staff_number_is_optional': staff_number_optional,
+                'staff_number': staff_number
+            }
+        serializerPedidoPersonal = OrderStaffSerializer(data=pedidoPersonalData)
+        serializerPedidoPersonal.is_valid(raise_exception=True)
+        serializerPedidoPersonal.save()
+
+        for i in range(len(data['equipment'])):
+            equipment_type = data['equipment'][i]
+            equipment_is_optional = data['equipment_is_optional'][i]
+            equipment_selected = data['equipment_selected'][i]
+            equipment_number_optional = data['equipment_number_optional'][i]
+            equipment_number = data['equipment_number'][i]
+
+            pedidoEquipamientoData = {
+                'order': order.id,
+                'equipment_type': equipment_type,
+                'equipment_is_optional': equipment_is_optional,
+                'equipment_selected': equipment_selected,
+                'equipment_number_is_optional': equipment_number_optional,
+                'equipment_number': equipment_number
+            }
+        serializerPedidoEquipamiento = OrderEquipmentSerializer(data=pedidoEquipamientoData)
+        serializerPedidoEquipamiento.is_valid(raise_exception=True)
+        serializerPedidoEquipamiento.save()
+
+        return Response({'message': 'Pedido recibido'}, status=status.HTTP_200_OK)

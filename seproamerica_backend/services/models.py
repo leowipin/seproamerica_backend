@@ -45,25 +45,26 @@ class ServicioTipoEquipamiento(models.Model):
 class Pedido(models.Model):
     client = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     service = models.ForeignKey(Servicio, on_delete=models.CASCADE)
-    phone_account = models.ForeignKey(CuentaTelefono, on_delete=models.CASCADE)
+    phone_account = models.ForeignKey(CuentaTelefono, on_delete=models.CASCADE, null=True)
     start_date = models.DateField()
     start_time = models.TimeField()
-    end_date = models.DateField()
-    end_time = models.TimeField()
-    duration = models.DecimalField(max_digits=4, decimal_places=1) #hour
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    end_date = models.DateField(null=True)
+    end_time = models.TimeField(null=True)
+    duration = models.DecimalField(max_digits=4, decimal_places=1, null=True) #hour
+    total = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=100)
     status = models.CharField(max_length=100)
-    origin_latitude = models.FloatField()
-    origin_length = models.FloatField()
-    destination_latitude = models.FloatField()
-    destination_length = models.FloatField()
+    origin_lat = models.FloatField()
+    origin_lng = models.FloatField()
+    destination_lat = models.FloatField(null=True)
+    destination_lng = models.FloatField(null=True)
 
 class PedidoPersonal(models.Model):
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
     staff = models.ForeignKey(Cargo, on_delete=models.CASCADE)
-    #is_required = models.BooleanField()
-    #staff_number_is_optional = models.BooleanField()
+    staff_is_optional = models.BooleanField()
+    staff_selected = models.BooleanField()
+    staff_number_is_optional = models.BooleanField()
     staff_number = models.IntegerField(null=True, blank=True)
 
 class PedidoEquipamiento(models.Model):
@@ -75,8 +76,9 @@ class PedidoEquipamiento(models.Model):
     )
     equipment_type = models.CharField(max_length=20, choices=EQUIPMENT_TYPES, null=True)
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
-    #is_required = models.BooleanField()
-    #equipment_number_is_optional = models.BooleanField()
+    equipment_is_optional = models.BooleanField()
+    equipment_selected = models.BooleanField()
+    equipment_number_is_optional = models.BooleanField()
     equipment_number = models.IntegerField(null=True, blank=True)
 
 class PersonalAsignado(models.Model):
