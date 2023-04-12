@@ -126,7 +126,6 @@ class ServiceView(APIView):
                 serializer_equipment.save()
         if service_equipment_size > equipment_size:
             for i in range(equipment_size, service_equipment_size):
-                print(i)
                 service_equipment[i].delete()
 
         return Response({'message': 'Servicio actualizado exitosamente.'}, status=status.HTTP_200_OK)
@@ -191,7 +190,6 @@ class ServiceGetView(APIView):
         price_range1, price_range2, price_range3, lower_limit1, upper_limit1, lower_limit2, upper_limit2, lower_limit3, upper_limit3 = [None] * 9
         for se in service_equipment:
             equipment.append(se.equipment_type)
-            print(se.equipment_type)
             equipment_is_optional.append(se.equipment_is_optional)
             equipment_number_is_optional.append(se.equipment_number_is_optional)
             equipment_price.append(se.equipment_price)
@@ -251,9 +249,9 @@ class OrderClientView(APIView):
                 'staff_number_is_optional': staff_number_optional,
                 'staff_number': staff_number
             }
-        serializerPedidoPersonal = OrderStaffSerializer(data=pedidoPersonalData)
-        serializerPedidoPersonal.is_valid(raise_exception=True)
-        serializerPedidoPersonal.save()
+            serializerPedidoPersonal = OrderStaffSerializer(data=pedidoPersonalData)
+            serializerPedidoPersonal.is_valid(raise_exception=True)
+            serializerPedidoPersonal.save()
 
         for i in range(len(data['equipment'])):
             equipment_type = data['equipment'][i]
@@ -270,8 +268,8 @@ class OrderClientView(APIView):
                 'equipment_number_is_optional': equipment_number_optional,
                 'equipment_number': equipment_number
             }
-        serializerPedidoEquipamiento = OrderEquipmentSerializer(data=pedidoEquipamientoData)
-        serializerPedidoEquipamiento.is_valid(raise_exception=True)
-        serializerPedidoEquipamiento.save()
+            serializerPedidoEquipamiento = OrderEquipmentSerializer(data=pedidoEquipamientoData)
+            serializerPedidoEquipamiento.is_valid(raise_exception=True)
+            serializerPedidoEquipamiento.save()
 
         return Response({'message': 'Pedido recibido'}, status=status.HTTP_200_OK)
