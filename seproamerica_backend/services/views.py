@@ -4,9 +4,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderInfoSerializer, OrderNamesSerializer
 from users.models import Cargo, Cliente
-from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido
+from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento
 from rest_framework.exceptions import NotFound
 from django.db.models import F
 
@@ -225,11 +225,18 @@ class OrderClientView(APIView):
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["add_pedido","delete_pedido","view_pedido",]
 
+    def get_order_by_id(self, order_id):
+        try:
+            return Pedido.objects.get(id=order_id)
+        except Pedido.DoesNotExist:
+            raise NotFound({'message': 'Pedido no encontrado.'})
+        
     def post(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
         data = request.data.copy()
         data['client'] = client.id
+        data['phone_account'] = None
         serializerOrder = OrderSerializer(data=data)
         serializerOrder.is_valid(raise_exception=True)
         order = serializerOrder.save()
@@ -239,7 +246,7 @@ class OrderClientView(APIView):
             staff = Cargo.objects.get(name=staff_name).id
             staff_is_optional = data['staff_is_optional'][i]
             staff_selected = data['staff_selected'][i]
-            staff_number_optional = data['staff_number_optional'][i]
+            staff_number_is_optional = data['staff_number_is_optional'][i]
             staff_number = data['staff_number'][i]
 
             pedidoPersonalData = {
@@ -247,7 +254,7 @@ class OrderClientView(APIView):
                 'staff': staff,
                 'staff_is_optional': staff_is_optional,
                 'staff_selected': staff_selected,
-                'staff_number_is_optional': staff_number_optional,
+                'staff_number_is_optional': staff_number_is_optional,
                 'staff_number': staff_number
             }
             serializerPedidoPersonal = OrderStaffSerializer(data=pedidoPersonalData)
@@ -258,7 +265,7 @@ class OrderClientView(APIView):
             equipment_type = data['equipment'][i]
             equipment_is_optional = data['equipment_is_optional'][i]
             equipment_selected = data['equipment_selected'][i]
-            equipment_number_optional = data['equipment_number_optional'][i]
+            equipment_number_is_optional = data['equipment_number_is_optional'][i]
             equipment_number = data['equipment_number'][i]
 
             pedidoEquipamientoData = {
@@ -266,7 +273,7 @@ class OrderClientView(APIView):
                 'equipment_type': equipment_type,
                 'equipment_is_optional': equipment_is_optional,
                 'equipment_selected': equipment_selected,
-                'equipment_number_is_optional': equipment_number_optional,
+                'equipment_number_is_optional': equipment_number_is_optional,
                 'equipment_number': equipment_number
             }
             serializerPedidoEquipamiento = OrderEquipmentSerializer(data=pedidoEquipamientoData)
@@ -275,6 +282,51 @@ class OrderClientView(APIView):
 
         return Response({'message': 'Pedido recibido'}, status=status.HTTP_200_OK)
     
+    def get(self, request):
+        order_id = request.GET.get('id')
+        order = self.get_order_by_id(order_id)
+        serializer = OrderInfoSerializer(order)
+        data = serializer.data
+        # getting the data of PedidoPersonal
+        order_staff = PedidoPersonal.objects.filter(order_id=order_id)
+        staff = []
+        staff_is_optional = []
+        staff_number_is_optional = []
+        staff_selected = []
+        staff_number = []
+        for os in order_staff:
+            charge = Cargo.objects.get(id=os.staff_id)
+            staff.append(charge.name)
+            staff_is_optional.append(os.staff_is_optional)
+            staff_number_is_optional.append(os.staff_number_is_optional)
+            staff_selected.append(os.staff_selected)
+            staff_number.append(os.staff_number)
+        data['staff'] = staff
+        data['staff_is_optional'] = staff_is_optional
+        data['staff_number_is_optional'] = staff_number_is_optional
+        data['staff_selected'] = staff_selected
+        data['staff_number'] = staff_number
+        # getting the data of PedidoEquipamiento
+        order_equipment = PedidoEquipamiento.objects.filter(order_id = order_id)
+        equipment = []
+        equipment_is_optional = []
+        equipment_number_is_optional = []
+        equipment_selected = []
+        equipment_number = []
+        for oe in order_equipment:
+            equipment.append(oe.equipment_type)
+            equipment_is_optional.append(oe.equipment_is_optional)
+            equipment_number_is_optional.append(oe.equipment_number_is_optional)
+            equipment_selected.append(oe.equipment_selected)
+            equipment_number.append(oe.equipment_number)
+        data['equipment'] = equipment
+        data['equipment_is_optional'] = equipment_is_optional
+        data['equipment_number_is_optional'] = equipment_number_is_optional
+        data['equipment_selected'] = equipment_selected
+        data['equipment_number'] = equipment_number
+
+        return Response(data, status=status.HTTP_200_OK)
+
 class OrderClientNamesView (APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
@@ -283,5 +335,6 @@ class OrderClientNamesView (APIView):
     def get(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
-        pedidos = Pedido.objects.filter(client=client.id).values('id', 'date_request', 'status', service_name=F('service__name'))
-        return Response(data=list(pedidos), status=200)
+        pedidos = Pedido.objects.filter(client=client.id)
+        serializer = OrderNamesSerializer(pedidos, many=True)
+        return Response(data=serializer.data, status=200)
