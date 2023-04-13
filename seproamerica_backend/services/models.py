@@ -46,6 +46,7 @@ class Pedido(models.Model):
     client = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     service = models.ForeignKey(Servicio, on_delete=models.CASCADE)
     phone_account = models.ForeignKey(CuentaTelefono, on_delete=models.CASCADE, null=True)
+    date_request = models.DateField()
     start_date = models.DateField()
     start_time = models.TimeField()
     end_date = models.DateField(null=True)

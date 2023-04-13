@@ -6,8 +6,9 @@ from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
 from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer
 from users.models import Cargo, Cliente
-from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento
+from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido
 from rest_framework.exceptions import NotFound
+from django.db.models import F
 
 
 
@@ -273,3 +274,14 @@ class OrderClientView(APIView):
             serializerPedidoEquipamiento.save()
 
         return Response({'message': 'Pedido recibido'}, status=status.HTTP_200_OK)
+    
+class OrderClientNamesView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        pedidos = Pedido.objects.filter(client=client.id).values('id', 'date_request', 'status', service_name=F('service__name'))
+        return Response(data=list(pedidos), status=200)
