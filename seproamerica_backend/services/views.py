@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer
 from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
 from equipment.models import Equipamiento
@@ -441,3 +441,13 @@ class OrderClientNamesView (APIView):
         pedidos = Pedido.objects.filter(client=client.id)
         serializer = OrderNamesSerializer(pedidos, many=True)
         return Response(data=serializer.data, status=200)
+    
+class OrderAllView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.all()
+        serializer = OrderAllSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
