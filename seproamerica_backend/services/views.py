@@ -291,16 +291,17 @@ class OrderClientView(APIView):
         data = serializer.data
         try:
             client = Cliente.objects.get(id=data['client'])
-            user_id = client.user_id
+            user_client_id = client.user_id
         except Cliente.DoesNotExist:
             return Response({'message': 'Cliente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        data['client'] = user_id
-        try:
-            phone_acc = CuentaTelefono.objects.get(id=data['phone_account'])
-            user_id = phone_acc.user_id
-        except CuentaTelefono.DoesNotExist:
-            return Response({'message': 'Cuenta teléfono no encontrada'}, status=status.HTTP_404_NOT_FOUND)
-        data['phone_account'] = user_id
+        data['client'] = user_client_id
+        if data['phone_account'] != None:
+            try:
+                phone_acc = CuentaTelefono.objects.get(id=data['phone_account'])
+                user_phone_id = phone_acc.user_id
+            except CuentaTelefono.DoesNotExist:
+                return Response({'message': 'Cuenta teléfono no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+            data['phone_account'] = user_phone_id
         # getting the data of PedidoPersonal
         order_staff = PedidoPersonal.objects.filter(order_id=order_id)
         staff = []
