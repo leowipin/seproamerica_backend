@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento
+from .models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
 from users.models import Cargo
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -54,4 +54,19 @@ class OrderStaffSerializer(serializers.ModelSerializer):
 class OrderEquipmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PedidoEquipamiento
+        fields = '__all__'
+
+class OrderPutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pedido
+        fields = ('start_date', 'start_time', 'end_date', 'end_time', 'duration', 'total', 'payment_method', 'status', 'origin_lat', 'origin_lng', 'destination_lat', 'destination_lng', 'phone_account')
+
+class AssignedStaffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PersonalAsignado
+        fields = '__all__'
+
+class AssignedEquipmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EquipamientoAsignado
         fields = '__all__'

@@ -4,9 +4,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderInfoSerializer, OrderNamesSerializer
-from users.models import Cargo, Cliente
-from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer
+from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono
+from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
+from equipment.models import Equipamiento
 from rest_framework.exceptions import NotFound
 from django.db.models import F
 
@@ -231,6 +232,7 @@ class OrderClientView(APIView):
         except Pedido.DoesNotExist:
             raise NotFound({'message': 'Pedido no encontrado.'})
         
+    @transaction.atomic()    
     def post(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
@@ -285,8 +287,20 @@ class OrderClientView(APIView):
     def get(self, request):
         order_id = request.GET.get('id')
         order = self.get_order_by_id(order_id)
-        serializer = OrderInfoSerializer(order)
+        serializer = OrderSerializer(order)
         data = serializer.data
+        try:
+            client = Cliente.objects.get(id=data['client'])
+            user_id = client.user_id
+        except Cliente.DoesNotExist:
+            return Response({'message': 'Cliente no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        data['client'] = user_id
+        try:
+            phone_acc = CuentaTelefono.objects.get(id=data['phone_account'])
+            user_id = phone_acc.user_id
+        except CuentaTelefono.DoesNotExist:
+            return Response({'message': 'Cuenta teléfono no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        data['phone_account'] = user_id
         # getting the data of PedidoPersonal
         order_staff = PedidoPersonal.objects.filter(order_id=order_id)
         staff = []
@@ -326,6 +340,94 @@ class OrderClientView(APIView):
         data['equipment_number'] = equipment_number
 
         return Response(data, status=status.HTTP_200_OK)
+    
+    @transaction.atomic()
+    def put(self ,request):
+        order_id = request.GET.get('id')
+        order = self.get_order_by_id(order_id)
+        data = request.data.copy()
+        try:
+            phone_acc = CuentaTelefono.objects.get(user_id=data['phone_account'])
+        except CuentaTelefono.DoesNotExist:
+            return Response({'message': 'Cuenta teléfono no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        data['phone_account'] = phone_acc.id
+        serializer = OrderPutSerializer(order, data= data)
+        serializer.is_valid(raise_exception=True)
+        order_save = serializer.save()
+        data['order'] = order_id
+
+        # updating PedidoPersonal instance
+        order_staff = PedidoPersonal.objects.filter(order=order_save).order_by('id')
+        if not order_staff:
+            return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        for i, order_s in enumerate(order_staff):
+            staff_selected = data['staff_selected'][i]
+            staff_number = data['staff_number'][i]
+
+            order_staff_data = {
+                'order': order_id,
+                'staff_selected': staff_selected,
+                'staff_number': staff_number
+            }
+            serializer_order_staff = OrderStaffSerializer(order_s, data=order_staff_data, partial=True)
+            serializer_order_staff.is_valid(raise_exception=True)
+            serializer_order_staff.save()
+
+        # updating PedidoEquipamiento instance
+        order_equipments = PedidoEquipamiento.objects.filter(order=order_save).order_by('id')
+        if not order_equipments:
+            return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        for i, order_equipment in enumerate(order_equipments):
+            equipment_selected = data['equipment_selected'][i]
+            equipment_number = data['equipment_number'][i]
+
+            order_equipment_data = {
+                'order': order_id,
+                'equipment_selected': equipment_selected,
+                'equipment_number': equipment_number
+            }
+            serializer_order_equipment = OrderEquipmentSerializer(order_equipment, data=order_equipment_data, partial=True)
+            serializer_order_equipment.is_valid(raise_exception=True)
+            serializer_order_equipment.save()
+            
+        # creating the assigned staff
+        PersonalAsignado.objects.filter(order=order_save).delete()
+        for staff_id in data['assigned_staff']:
+            try:
+                op_staff = PersonalOperativo.objects.get(user_id=staff_id)
+            except PersonalOperativo.DoesNotExist:
+                return Response({'message': 'Al menos un personal operativo no se ha encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+            is_leader = staff_id == data['staff_leader']
+            assigned_staff_data = {
+            'operational_staff': op_staff.id,
+            'order': order_id,
+            'is_leader': is_leader
+            }
+            serializer_assigned_staff = AssignedStaffSerializer(data=assigned_staff_data)
+            serializer_assigned_staff.is_valid(raise_exception=True)
+            serializer_assigned_staff.save()
+
+        # creating the assigned equipment
+        EquipamientoAsignado.objects.filter(order=order_save).delete()
+        for equipment_id in data['assigned_equipment']:
+            try:
+                equipment = Equipamiento.objects.get(id=equipment_id)
+            except Equipamiento.DoesNotExist:
+                return Response({'message': 'Al menos un equipamiento no se ha encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+            assigned_equipment_data = {
+            'equipment': equipment.id,
+            'order': order_id
+            }
+            serializer_assigned_equipment = AssignedEquipmentSerializer(data=assigned_equipment_data)
+            serializer_assigned_equipment.is_valid(raise_exception=True)
+            serializer_assigned_equipment.save()
+
+        return Response({'message': 'Pedido actualizado con éxito'}, status=status.HTTP_200_OK)
+
 
 class OrderClientNamesView (APIView):
     authentication_classes = [JWTAuthentication]
