@@ -428,6 +428,17 @@ class OrderClientView(APIView):
             serializer_assigned_equipment.save()
 
         return Response({'message': 'Pedido actualizado con éxito'}, status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        order_id = request.GET.get('id')
+        order = self.get_order_by_id(order_id)
+        data = {
+            'status':'eliminado'
+        }
+        serializer = OrderSerializer(order, data= data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        order_save = serializer.save()
+        return Response({'message': 'Pedido eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class OrderClientNamesView (APIView):
@@ -438,7 +449,7 @@ class OrderClientNamesView (APIView):
     def get(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
-        pedidos = Pedido.objects.filter(client=client.id)
+        pedidos = Pedido.objects.filter(client=client.id).exclude(status='eliminado')
         serializer = OrderNamesSerializer(pedidos, many=True)
         return Response(data=serializer.data, status=200)
     
