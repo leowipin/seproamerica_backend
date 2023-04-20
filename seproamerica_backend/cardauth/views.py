@@ -1,0 +1,43 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Cardauth, Cliente
+from .serializers import CardSerializer
+from users.authentication import JWTAuthentication, HasRequiredPermissions
+
+class CardView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_cardauth","view_cardauth","delete_cardauth"]
+
+    def post(self, request):
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        request.data['client'] = client.id
+        serializer = CardSerializer(data=request.data)
+        if serializer.is_valid():
+            card = serializer.save(client=client)
+            return Response({"message": "Tarjeta creada con éxito"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"message": "No se pudo crear la tarjeta"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request):
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        
+        cards = Cardauth.objects.filter(client=client)
+        serializer = CardSerializer(cards, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        card_id = request.data.get('card_id')
+        
+        try:
+            card = Cardauth.objects.get(id=card_id, client=client)
+            card.delete()
+            return Response({"message": "Tarjeta eliminada con éxito"}, status=status.HTTP_200_OK)
+        except Cardauth.DoesNotExist:
+            return Response({"message": "Tarjeta no encontrada"}, status=status.HTTP_404_NOT_FOUND)

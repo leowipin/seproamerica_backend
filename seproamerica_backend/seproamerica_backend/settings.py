@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'equipment',
     'services',
     'corsheaders',
+    'cardauth',
 ]
 
 MIDDLEWARE = [

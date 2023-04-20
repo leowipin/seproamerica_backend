@@ -136,9 +136,13 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'first_name', 'last_name', 'email', 'phone_number')
 
 class StaffSerializer(serializers.ModelSerializer):
+    charge = serializers.SerializerMethodField()
     class Meta:
         model = Usuario
-        fields = ('id', 'first_name', 'last_name', 'email', 'phone_number', 'is_admin')
+        fields = ('id', 'first_name', 'last_name', 'email', 'phone_number', 'is_admin', 'charge')
+    
+    def get_charge(self, obj):
+        return obj.personaloperativo.charge.name
 
 class ChargeSerializer(serializers.ModelSerializer):
 
