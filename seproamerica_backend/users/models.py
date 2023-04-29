@@ -6,7 +6,6 @@ from django.utils import timezone
 from django.contrib.auth.models import Group
 
 
-
 class Usuario(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=False)
@@ -28,6 +27,7 @@ class Usuario(AbstractUser):
 
 class Cliente(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    current_card = models.CharField(max_length=20)
 
 class CuentaTelefono(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

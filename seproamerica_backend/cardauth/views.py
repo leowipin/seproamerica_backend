@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Cardauth, Cliente
-from .serializers import CardSerializer
+from .serializers import CardSerializer, ClientSerializer
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 
 class CardView(APIView):
@@ -41,3 +41,23 @@ class CardView(APIView):
             return Response({"message": "Tarjeta eliminada con éxito"}, status=status.HTTP_200_OK)
         except Cardauth.DoesNotExist:
             return Response({"message": "Tarjeta no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class CurrentCardView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_cardauth"]
+
+    def get(self, request):
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        serializer = ClientSerializer(client)
+        return Response(serializer.data)
+    
+    def put(self, request):
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        serializer = ClientSerializer(client, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Tarjeta actual actualizada con éxito"}, status=status.HTTP_200_OK)
