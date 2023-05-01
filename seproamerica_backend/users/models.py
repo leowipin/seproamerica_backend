@@ -27,7 +27,7 @@ class Usuario(AbstractUser):
 
 class Cliente(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    current_card = models.CharField(max_length=20)
+    current_card = models.CharField(max_length=6, null=True, blank=True)
 
 class CuentaTelefono(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

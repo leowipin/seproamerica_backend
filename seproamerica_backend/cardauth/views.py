@@ -33,10 +33,9 @@ class CardView(APIView):
     def delete(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
-        card_id = request.data.get('card_id')
-        
+        card_token = request.GET.get('cardToken')
         try:
-            card = Cardauth.objects.get(id=card_id, client=client)
+            card = Cardauth.objects.get(token=card_token, client=client)
             card.delete()
             return Response({"message": "Tarjeta eliminada con éxito"}, status=status.HTTP_200_OK)
         except Cardauth.DoesNotExist:
