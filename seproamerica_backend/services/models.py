@@ -54,7 +54,14 @@ class Pedido(models.Model):
     duration = models.DecimalField(max_digits=4, decimal_places=1, null=True) #hour
     total = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=100)
-    status = models.CharField(max_length=100)
+    STATUS_CHOICES = [
+    ('aceptado', 'Aceptado'),
+    ('pendiente', 'Pendiente'),
+    ('pagado', 'Pagado'),
+    ('en proceso', 'En proceso'),
+    ('eliminado', 'Eliminado')
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     origin_lat = models.FloatField()
     origin_lng = models.FloatField()
     destination_lat = models.FloatField(null=True)

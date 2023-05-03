@@ -339,7 +339,21 @@ class OrderClientView(APIView):
         data['equipment_number_is_optional'] = equipment_number_is_optional
         data['equipment_selected'] = equipment_selected
         data['equipment_number'] = equipment_number
-
+        #getting the data of EquipamientoAsignado
+        order_equipment_assigned = EquipamientoAsignado.objects.filter(order_id = order_id)
+        assigned_equipment = []
+        if order_equipment_assigned.exists():
+            for oea in order_equipment_assigned:
+                assigned_equipment.append(oea.equipment.id)
+        data['assigned_equipment'] = assigned_equipment
+        #getting the data of PersonalAsignado
+        order_staff_assigned = PersonalAsignado.objects.filter(order_id = order_id)
+        assigned_staff = []
+        if order_staff_assigned.exists():
+            for osa in order_staff_assigned:
+                print(osa)
+                assigned_staff.append(osa.operational_staff.id)
+        data['assigned_staff'] = assigned_staff
         return Response(data, status=status.HTTP_200_OK)
     
     @transaction.atomic()
@@ -514,6 +528,16 @@ class OrderProcessView (APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class OrderDeletedView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.filter(status='eliminado')
+        serializer = OrderRestSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class OrderAssignedView (APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["view_pedido",]
