@@ -8,7 +8,7 @@ class ServiceEquipmentAdmin(admin.ModelAdmin):
     list_display = ('id','equipment_type')
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id','client', 'service', 'duration', 'total')
+    list_display = ('id','client', 'service', 'duration', 'status', 'total')
 
 class OrderStaffAdmin(admin.ModelAdmin):
     list_display = ('id','order', 'staff')

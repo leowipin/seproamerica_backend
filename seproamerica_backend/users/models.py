@@ -4,6 +4,7 @@ from datetime import date
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import Group
+#from services.models import Pedido
 
 
 class Usuario(AbstractUser):
@@ -54,6 +55,14 @@ class Cargo(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.TextField()
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+
+class Empresa(models.Model):
+    name = models.CharField(max_length=100)
+    ruc = models.CharField(max_length=20)
+    policy = models.TextField()
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    address = models.CharField(max_length=100)
 
 class Sucursal(models.Model):
     name = models.CharField(max_length=50, unique=True)

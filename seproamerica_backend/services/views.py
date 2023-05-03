@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer
 from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
 from equipment.models import Equipamiento
@@ -449,7 +449,7 @@ class OrderClientNamesView (APIView):
     def get(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
-        pedidos = Pedido.objects.filter(client=client.id).exclude(status='eliminado')
+        pedidos = Pedido.objects.filter(client=client.id).exclude(status__in=['eliminado', 'en proceso'])
         serializer = OrderNamesSerializer(pedidos, many=True)
         return Response(data=serializer.data, status=200)
     
@@ -461,4 +461,64 @@ class OrderAllView (APIView):
     def get(self, request):
         orders = Pedido.objects.all()
         serializer = OrderAllSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class OrderListRestView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.all().exclude(status__in=['pendiente', 'en proceso'])
+        serializer = OrderRestSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class OrderPendingView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.filter(status='pendiente')
+        serializer = OrderRestSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class OrderAcceptedView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.filter(status='aceptado')
+        serializer = OrderRestSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class OrderPaidView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.filter(status='pagado')
+        serializer = OrderRestSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class OrderProcessView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.filter(status='en proceso')
+        serializer = OrderRestSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class OrderDeletedView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.filter(status='eliminado')
+        serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

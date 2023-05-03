@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from users.models import Cargo, PersonalOperativo, Cliente, CuentaTelefono
+from users.models import Cargo, PersonalOperativo, Cliente, CuentaTelefono, Empresa
 from equipment.models import Equipamiento
 
 User = get_user_model()
@@ -90,3 +90,13 @@ class PersonalAsignado(models.Model):
 class EquipamientoAsignado(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+
+class Facturacion(models.Model):
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    dni = models.CharField(max_length=20, null=True, blank=True)
+    first_name = models.CharField(max_length=30, null=True, blank=True)
+    last_name = models.CharField(max_length=30, null=True, blank=True)
+    address = models.CharField(max_length=100, null=True, blank=True)
+    iva = models.IntegerField(default=12)
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+    empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)
