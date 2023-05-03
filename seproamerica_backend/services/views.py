@@ -349,11 +349,14 @@ class OrderClientView(APIView):
         #getting the data of PersonalAsignado
         order_staff_assigned = PersonalAsignado.objects.filter(order_id = order_id)
         assigned_staff = []
+        staff_leader = None
         if order_staff_assigned.exists():
             for osa in order_staff_assigned:
-                print(osa)
-                assigned_staff.append(osa.operational_staff.id)
+                assigned_staff.append(osa.operational_staff.user.id)
+                if osa.is_leader:
+                    staff_leader = osa.operational_staff.user.id
         data['assigned_staff'] = assigned_staff
+        data['staff_leader'] = staff_leader
         return Response(data, status=status.HTTP_200_OK)
     
     @transaction.atomic()
