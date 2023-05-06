@@ -99,11 +99,11 @@ class EquipamientoAsignado(models.Model):
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
 
 class Facturacion(models.Model):
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    dni = models.CharField(max_length=20, null=True, blank=True)
-    first_name = models.CharField(max_length=30, null=True, blank=True)
-    last_name = models.CharField(max_length=30, null=True, blank=True)
-    address = models.CharField(max_length=100, null=True, blank=True)
+    cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True)
+    dni = models.CharField(max_length=20, null=True, blank=True)#
+    first_name = models.CharField(max_length=30, null=True, blank=True)#
+    last_name = models.CharField(max_length=30, null=True, blank=True)#
+    address = models.CharField(max_length=100, null=True, blank=True)#
     iva = models.IntegerField(default=12)
-    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)
     empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)

@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
 from rest_framework import status
 from .models import TokenVerificacion
@@ -903,3 +903,13 @@ class VerifyNewPassword(APIView):
             context = {'title': 'Confirmación de correo', 'message': 'Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo más tarde.'}
             return render(request, 'verificationResult.html', context)
         
+class CompanyView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_empresa",]
+
+    def post(self, request):
+        serializer = CompanySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Información guardada correctamente'}, status=status.HTTP_200_OK)

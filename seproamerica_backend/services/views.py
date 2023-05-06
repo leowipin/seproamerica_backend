@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer
-from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer
+from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono, Empresa
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
 from equipment.models import Equipamiento
 from rest_framework.exceptions import NotFound
@@ -549,3 +549,35 @@ class OrderAssignedView (APIView):
         orders = Pedido.objects.filter(status='eliminado')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class BillingCreateView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_facturacion", "view_facturacion"]
+
+    def post(self, request):
+        data = request.data
+        empresa = Empresa.objects.first()
+        if empresa:
+            data['empresa'] = empresa.id
+        else:
+            raise NotFound({'message': 'Empresa no encontrada.'})
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        data['cliente'] = client.id
+        serializer = BillingSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Datos de facturacion guardados correctamente'}, status=status.HTTP_200_OK)
+    
+    #GET METHOD
+
+
+# DELETE METHOD
+class BillingDelView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["delete_facturacion",]
+
+    def delete(self, request):
+        pass

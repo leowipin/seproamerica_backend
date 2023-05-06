@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
-from .models import PersonalOperativo, PersonalAdministrativo, Cargo, Cliente, Sucursal, Usuario, CuentaTelefono
+from .models import PersonalOperativo, PersonalAdministrativo, Cargo, Cliente, Sucursal, Usuario, CuentaTelefono, Empresa
 
 User = get_user_model()
 
@@ -239,3 +239,8 @@ class OperationalInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalOperativo
         fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'date_joined', 'start_date', 'final_date', 'charge', 'branch', 'created_by')
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Empresa
+        fields = '__all__'

@@ -28,7 +28,6 @@ class Usuario(AbstractUser):
 
 class Cliente(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    current_card = models.CharField(max_length=6, null=True, blank=True)
 
 class CuentaTelefono(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -57,7 +56,7 @@ class Cargo(models.Model):
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
 
 class Empresa(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     ruc = models.CharField(max_length=20)
     policy = models.TextField()
     email = models.EmailField()

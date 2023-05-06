@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
+from .models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado, Facturacion
 from users.models import Cargo
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -88,3 +88,8 @@ class OrderRestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pedido
         fields = ('id', 'date_request', 'start_date', 'start_time', 'client_first_name', 'client_last_name', 'client_dni', 'service_name', 'status')
+
+class BillingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Facturacion
+        fields = '__all__'
