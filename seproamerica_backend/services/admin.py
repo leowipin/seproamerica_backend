@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Servicio, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, EquipamientoAsignado, PersonalAsignado
+from .models import Servicio, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, EquipamientoAsignado, PersonalAsignado, Facturacion
 
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('id','name')
@@ -22,6 +22,9 @@ class OrderStaffAssignedAdmin(admin.ModelAdmin):
 class OrderEquipmentAssignedAdmin(admin.ModelAdmin):
     list_display = ('id', 'equipment', 'order')
 
+class BillingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'dni', 'first_name', 'last_name', 'email')
+
 admin.site.register(Servicio, ServiceAdmin)
 admin.site.register(ServicioTipoEquipamiento, ServiceEquipmentAdmin)
 admin.site.register(Pedido, OrderAdmin)
@@ -29,3 +32,4 @@ admin.site.register(PedidoPersonal, OrderStaffAdmin)
 admin.site.register(PedidoEquipamiento, OrderEquipmentAdmin)
 admin.site.register(PersonalAsignado, OrderStaffAssignedAdmin)
 admin.site.register(EquipamientoAsignado, OrderEquipmentAssignedAdmin)
+admin.site.register(Facturacion, BillingAdmin)

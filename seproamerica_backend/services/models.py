@@ -104,6 +104,8 @@ class Facturacion(models.Model):
     first_name = models.CharField(max_length=30, null=True, blank=True)#
     last_name = models.CharField(max_length=30, null=True, blank=True)#
     address = models.CharField(max_length=100, null=True, blank=True)#
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
     iva = models.IntegerField(default=12)
     pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)
     empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)

@@ -89,6 +89,11 @@ class OrderRestSerializer(serializers.ModelSerializer):
         model = Pedido
         fields = ('id', 'date_request', 'start_date', 'start_time', 'client_first_name', 'client_last_name', 'client_dni', 'service_name', 'status')
 
+class OrderStatusSerialier(serializers.ModelSerializer):
+    class Meta:
+        model = Pedido
+        fields = ('id', 'status')
+
 class BillingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Facturacion

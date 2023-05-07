@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer, OrderStatusSerialier
 from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono, Empresa
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
 from equipment.models import Equipamiento
@@ -550,6 +550,21 @@ class OrderAssignedView (APIView):
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+class StatusChangeView (APIView):
+    authentication_classes = [JWTAuthentication]
+    def put(self, request):
+        order_id=request.GET.get('id')
+        print(order_id)
+        try:
+            pedido = Pedido.objects.get(id=order_id)
+            pedido.status = request.data['status']
+            serializer = OrderStatusSerialier(pedido, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({'message': 'Pedido actualizado con éxito'}, status=status.HTTP_200_OK)
+        except Pedido.DoesNotExist:
+            return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
 class BillingCreateView (APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
