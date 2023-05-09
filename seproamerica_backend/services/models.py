@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from users.models import Cargo, PersonalOperativo, Cliente, CuentaTelefono, Empresa
 from equipment.models import Equipamiento
+from datetime import datetime
 
 User = get_user_model()
 
@@ -107,5 +108,6 @@ class Facturacion(models.Model):
     email = models.EmailField()
     phone_number = models.CharField(max_length=20)
     iva = models.IntegerField(default=12)
+    created_at = models.DateTimeField(default=datetime.now)
     pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)
     empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)
