@@ -56,11 +56,13 @@ class Pedido(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=100)
     STATUS_CHOICES = [
-    ('aceptado', 'Aceptado'),
-    ('pendiente', 'Pendiente'),
-    ('pagado', 'Pagado'),
-    ('en proceso', 'En proceso'),
-    ('eliminado', 'Eliminado')
+    ('aceptado', 'aceptado'),
+    ('pendiente', 'pendiente'),
+    ('pagado', 'pagado'),
+    ('en proceso', 'en proceso'),
+    ('eliminado', 'eliminado'),
+    ('finalizado', 'finalizado'),
+    ('reembolsado', 'reembolsado'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     origin_lat = models.FloatField()

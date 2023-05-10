@@ -540,13 +540,23 @@ class OrderDeletedView (APIView):
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class OrderAssignedView (APIView):
+class OrderEndedView (APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='eliminado')
+        orders = Pedido.objects.filter(status='finalizado')
+        serializer = OrderRestSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class OrderRefundView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        orders = Pedido.objects.filter(status='reembolsado')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
