@@ -111,5 +111,7 @@ class Facturacion(models.Model):
     phone_number = models.CharField(max_length=20)
     iva = models.IntegerField(default=12)
     created_at = models.DateTimeField(default=datetime.now)
+    card_num = models.CharField(max_length=4)
+    transaction_id = models.CharField(max_length=20)
     pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)
     empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)

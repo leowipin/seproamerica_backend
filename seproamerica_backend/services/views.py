@@ -6,7 +6,7 @@ from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
 from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer, OrderStatusSerialier
 from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono, Empresa
-from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado
+from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado, Facturacion
 from equipment.models import Equipamiento
 from rest_framework.exceptions import NotFound
 from django.db.models import F
@@ -466,7 +466,7 @@ class OrderClientNamesView (APIView):
     def get(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
-        pedidos = Pedido.objects.filter(client=client.id).exclude(status__in=['eliminado', 'en proceso'])
+        pedidos = Pedido.objects.filter(client=client.id).exclude(status__in=['eliminado'])
         serializer = OrderNamesSerializer(pedidos, many=True)
         return Response(data=serializer.data, status=200)
     
@@ -595,8 +595,12 @@ class BillingCreateView (APIView):
         serializer.save()
         return Response({'message': 'Datos de facturacion guardados correctamente'}, status=status.HTTP_200_OK)
     
-    #GET METHOD
-
+    def get(self, request):
+        user_id = request.user
+        client = Cliente.objects.get(user_id=user_id)
+        bill = Facturacion.objects.get(cliente=client.id, pedido=request.GET.get('order'))
+        serializer = BillingSerializer(bill)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # DELETE METHOD
 class BillingDelView (APIView):
