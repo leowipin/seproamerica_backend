@@ -932,7 +932,7 @@ class FCMTokenView(APIView):
         return Response({'message': 'Token registrado.'}, status=status.HTTP_201_CREATED)
 
     def get(self, request):
-        user_id = request.user
+        user_id = request.GET.get('id')
         tokens = TokenFCM.objects.filter(user_id=user_id)
         serializer = TokenFCMSerializer(tokens, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
