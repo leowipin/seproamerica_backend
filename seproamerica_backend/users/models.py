@@ -82,6 +82,11 @@ class PersonalOperativo(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='administrative_staffs_created')
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+class TokenFCM(models.Model):
+    token = models.CharField(max_length=200)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 class TokenVerificacion(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     token = models.CharField(max_length=32, unique=True)

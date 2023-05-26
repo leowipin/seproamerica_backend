@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer, TokenFCMSerializer
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal, TokenFCM
 from rest_framework import status
 from .models import TokenVerificacion
 from django.template.loader import render_to_string
@@ -913,3 +913,23 @@ class CompanyView (APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Información guardada correctamente'}, status=status.HTTP_200_OK)
+    
+class FCMTokenView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_tokenfcm","add_tokenfcm",]
+
+    def post(self, request):
+        user_id = request.user
+        data = request.data.copy()
+        data['user'] = user_id
+        serializer = TokenFCMSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Token registrado.'}, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        user_id = request.user
+        tokens = TokenFCM.objects.filter(user_id=user_id)
+        serializer = TokenFCMSerializer(tokens, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
