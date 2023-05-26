@@ -9,7 +9,7 @@ class BranchAdmin(admin.ModelAdmin):
     list_display = ('name', 'address')
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('first_name','email')
+    list_display = ('id', 'first_name','email')
 
 class GroupTypeAdmin(admin.ModelAdmin):
     list_display = ('id','type')
