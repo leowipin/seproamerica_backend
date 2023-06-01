@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cargo, Sucursal, Usuario, GroupType, TokenFCM
+from .models import Cargo, Sucursal, Usuario, GroupType
 
 class ChargeAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'type')
@@ -14,11 +14,8 @@ class UserAdmin(admin.ModelAdmin):
 class GroupTypeAdmin(admin.ModelAdmin):
     list_display = ('id','type')
 
-class FCMTokenAdmin(admin.ModelAdmin):
-    list_display = ('id','user', 'created_at')
 
 admin.site.register(Cargo, ChargeAdmin)
 admin.site.register(Sucursal, BranchAdmin)
 admin.site.register(Usuario, UserAdmin)
 admin.site.register(GroupType, GroupTypeAdmin)
-admin.site.register(TokenFCM, FCMTokenAdmin)

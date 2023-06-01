@@ -8,5 +8,6 @@ urlpatterns = [
     path('equipment/', include('equipment.urls')),
     path('services/', include('services.urls')),
     path('cardauth/', include('cardauth.urls')),
+    path('notifications/', include('notifications.urls')),
     path('adminC/', TemplateView.as_view(template_name='static/adminC/index.html')),
 ]

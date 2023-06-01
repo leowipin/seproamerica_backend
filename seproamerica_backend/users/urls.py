@@ -35,5 +35,4 @@ urlpatterns = [
     path('branch/', BranchView.as_view(), name='branch'),
     path('branchList/', BranchListView.as_view(), name='branchlist'),
     path('company/', CompanyView.as_view(), name='company'),
-    path('fcmToken/', FCMTokenView.as_view(), name='fcmtoken'),
 ]

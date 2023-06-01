@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'services',
     'corsheaders',
     'cardauth',
+    'notifications',
 ]
 
 MIDDLEWARE = [

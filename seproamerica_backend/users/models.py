@@ -4,7 +4,6 @@ from datetime import date
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import Group
-#from services.models import Pedido
 
 
 class Usuario(AbstractUser):
@@ -82,11 +81,6 @@ class PersonalOperativo(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='administrative_staffs_created')
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-class TokenFCM(models.Model):
-    token = models.CharField(max_length=200)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-
 class TokenVerificacion(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     token = models.CharField(max_length=32, unique=True)
@@ -154,5 +148,3 @@ class CambioPassword(models.Model):
 
     class Meta:
         db_table = 'users_cambio_password'
-
-

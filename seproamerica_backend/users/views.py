@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer, TokenFCMSerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal, TokenFCM
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
 from rest_framework import status
 from .models import TokenVerificacion
 from django.template.loader import render_to_string
@@ -914,7 +914,9 @@ class CompanyView (APIView):
         serializer.save()
         return Response({'message': 'Información guardada correctamente'}, status=status.HTTP_200_OK)
     
-class FCMTokenView(APIView):
+# NOTIFICACIONES
+    
+"""class FCMTokenView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["view_tokenfcm","add_tokenfcm",]
@@ -936,3 +938,37 @@ class FCMTokenView(APIView):
         tokens = TokenFCM.objects.filter(user_id=user_id)
         serializer = TokenFCMSerializer(tokens, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class CustomNotificationView(APIView): #Notificacion referente a la solicitud de servicio
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_notificacionespersonalizadas","add_notificacionespersonalizadas",]
+
+    def post(self, request): #METODO QUE EL ADMIN USA PARA ENVIAR UNA NOTIFICACION A UN CLIENTE ESPECIFICO CUANDO ACEPTA LA SOLICITUD DE SERVICIO
+        serializer = CustomNotificationSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        # si se guarda la notificacion en la base proceder a enviar la notificacion
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request): #METODO QUE USA EL CLIENTE PARA OBTENER TODAS SUS NOTIFICACIONES PERSONALIZDAS CUANDO HACE CLIC EN EL BOTON DE NOTIFICACIONES
+        user_id = request.user
+        notificaciones = NotificacionesPersonalizadas.objects.filter(user_id=user_id)
+        serializer = CustomNotificationSerializer(notificaciones, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class TopicNotificationView(APIView):
+    #ESTO PARA LA NOTIFICACION MASIVA DEL ADMINISTRADOR PARA EL CLIENTE (topic:cliente) 2 modelos
+    #crear una vista que guarde la notificacion masiva cuyo tema es cliente 1er modelo
+    #luego crear otra vista que se obtenga el nombre de todas las notificaciones masivas 2do modelo
+    # y en la misma vista que guardo la notificacion masiva puedo hacer el get de la notificacion masiva por id
+    # similar a como he estado trabajando con usuarios servicios y recursos
+    
+
+    #NOTIFICACION DEDICADA DEL ADMIN A UN CLIENTE ESPECIFICO CUANDO ACEPTA O ELIMINA LA SOLICITUD DE SERVICIO 1 modelo
+    #la notificacion dedicada debe tener asociado el pedido
+    #NOTIFICACION MASIVA DEL CLIENTE PAL ADMIN CUANDO SOLICITA UN SERVICIO (topic:admin)
+    #pensar...
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_notificacionespersonalizadas","add_notificacionespersonalizadas",]"""
