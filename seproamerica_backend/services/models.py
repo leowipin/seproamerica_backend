@@ -101,6 +101,10 @@ class EquipamientoAsignado(models.Model):
     equipment = models.ForeignKey(Equipamiento, on_delete=models.CASCADE)
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
 
+class ReportePedido(models.Model):
+    order = models.OneToOneField(Pedido, on_delete=models.CASCADE)
+    report = models.TextField()
+
 class Facturacion(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True)
     dni = models.CharField(max_length=20, null=True, blank=True)#

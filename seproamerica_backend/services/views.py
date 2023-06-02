@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer, OrderStatusSerialier
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer, OrderStatusSerializer, PhoneAccountPedidoSerializer, OrderReportSerializer
 from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono, Empresa
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado, Facturacion
 from equipment.models import Equipamiento
@@ -568,14 +568,14 @@ class StatusChangeView (APIView):
         try:
             pedido = Pedido.objects.get(id=order_id)
             pedido.status = request.data['status']
-            serializer = OrderStatusSerialier(pedido, data=request.data)
+            serializer = OrderStatusSerializer(pedido, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({'message': 'Pedido actualizado con éxito'}, status=status.HTTP_200_OK)
         except Pedido.DoesNotExist:
             return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-class BillingCreateView (APIView):
+class BillingCreateView (APIView): #view used by the client
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["add_facturacion", "view_facturacion"]
@@ -610,3 +610,33 @@ class BillingDelView (APIView):
 
     def delete(self, request):
         pass
+
+class PhoneAccountOrderView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["change_pedido", "view_pedido",]
+
+    def get(self, request):
+        user_id = request.user
+        try:
+            phone_account = CuentaTelefono.objects.get(user_id=user_id)
+            order = Pedido.objects.get(phone_account=phone_account)
+            if order.status == 'en proceso':
+                serializer = PhoneAccountPedidoSerializer(order)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        except CuentaTelefono.DoesNotExist:
+            return Response({'message': 'Cuenta teléfono inexistente'}, status=status.HTTP_404_NOT_FOUND)
+        except Pedido.DoesNotExist:
+            return Response({'message': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+class OrderReportView(APIView):
+    def post(self, request):
+        serializer = OrderReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = Pedido.objects.get(id=serializer.validated_data['order'].id)
+        order.status = 'finalizado'
+        order.save()
+        serializer.save()
+        return Response({'message': 'Reporte finalizado exitosamente.'}, status=status.HTTP_201_CREATED)

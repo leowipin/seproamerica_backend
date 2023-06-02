@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado, Facturacion
+from .models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado, Facturacion, ReportePedido
 from users.models import Cargo
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -89,7 +89,7 @@ class OrderRestSerializer(serializers.ModelSerializer):
         model = Pedido
         fields = ('id', 'date_request', 'start_date', 'start_time', 'client_first_name', 'client_last_name', 'client_dni', 'service_name', 'status')
 
-class OrderStatusSerialier(serializers.ModelSerializer):
+class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pedido
         fields = ('id', 'status')
@@ -98,3 +98,18 @@ class BillingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Facturacion
         fields = '__all__'
+
+class PhoneAccountPedidoSerializer(serializers.ModelSerializer):
+    client_first_name = serializers.CharField(source='client.user.first_name')
+    client_last_name = serializers.CharField(source='client.user.last_name')
+    client_phone_number = serializers.CharField(source='client.user.phone_number')
+    service_name = serializers.CharField(source='service.name')
+
+    class Meta:
+        model = Pedido
+        fields = ('id', 'service_name', 'start_date', 'start_time', 'end_date', 'end_time', 'client_first_name', 'client_last_name', 'client_phone_number', 'origin_lat', 'origin_lng', 'destination_lat', 'destination_lng', 'total')
+
+class OrderReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportePedido
+        fields = ('order', 'report')
