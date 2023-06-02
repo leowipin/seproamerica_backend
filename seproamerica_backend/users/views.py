@@ -174,9 +174,11 @@ class PhoneAccountSignInView(APIView):
         serializer = SignInSerializer(data = request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data
-
+        if not user.is_operative:
+            return Response({'message':'Correo o contraseña incorrecto.'}, status=status.HTTP_403_FORBIDDEN)
+        
         token = generate_token(user)
-
+        
         return Response({
             "token": token
         }, status=status.HTTP_200_OK)
@@ -913,62 +915,3 @@ class CompanyView (APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Información guardada correctamente'}, status=status.HTTP_200_OK)
-    
-# NOTIFICACIONES
-    
-"""class FCMTokenView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [HasRequiredPermissions]
-    required_permissions = ["view_tokenfcm","add_tokenfcm",]
-
-    def post(self, request):
-        user_id = request.user
-        data = request.data.copy()
-        data['user'] = user_id
-        serializer = TokenFCMSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        token = data.get('token')
-        if TokenFCM.objects.filter(token=token, user=user_id).exists():
-            return Response({'message': 'El token ya está registrado para este usuario.'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer.save()
-        return Response({'message': 'Token registrado.'}, status=status.HTTP_201_CREATED)
-
-    def get(self, request):
-        user_id = request.GET.get('id')
-        tokens = TokenFCM.objects.filter(user_id=user_id)
-        serializer = TokenFCMSerializer(tokens, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-class CustomNotificationView(APIView): #Notificacion referente a la solicitud de servicio
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [HasRequiredPermissions]
-    required_permissions = ["view_notificacionespersonalizadas","add_notificacionespersonalizadas",]
-
-    def post(self, request): #METODO QUE EL ADMIN USA PARA ENVIAR UNA NOTIFICACION A UN CLIENTE ESPECIFICO CUANDO ACEPTA LA SOLICITUD DE SERVICIO
-        serializer = CustomNotificationSerializer(data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        # si se guarda la notificacion en la base proceder a enviar la notificacion
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def get(self, request): #METODO QUE USA EL CLIENTE PARA OBTENER TODAS SUS NOTIFICACIONES PERSONALIZDAS CUANDO HACE CLIC EN EL BOTON DE NOTIFICACIONES
-        user_id = request.user
-        notificaciones = NotificacionesPersonalizadas.objects.filter(user_id=user_id)
-        serializer = CustomNotificationSerializer(notificaciones, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-class TopicNotificationView(APIView):
-    #ESTO PARA LA NOTIFICACION MASIVA DEL ADMINISTRADOR PARA EL CLIENTE (topic:cliente) 2 modelos
-    #crear una vista que guarde la notificacion masiva cuyo tema es cliente 1er modelo
-    #luego crear otra vista que se obtenga el nombre de todas las notificaciones masivas 2do modelo
-    # y en la misma vista que guardo la notificacion masiva puedo hacer el get de la notificacion masiva por id
-    # similar a como he estado trabajando con usuarios servicios y recursos
-    
-
-    #NOTIFICACION DEDICADA DEL ADMIN A UN CLIENTE ESPECIFICO CUANDO ACEPTA O ELIMINA LA SOLICITUD DE SERVICIO 1 modelo
-    #la notificacion dedicada debe tener asociado el pedido
-    #NOTIFICACION MASIVA DEL CLIENTE PAL ADMIN CUANDO SOLICITA UN SERVICIO (topic:admin)
-    #pensar...
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [HasRequiredPermissions]
-    required_permissions = ["view_notificacionespersonalizadas","add_notificacionespersonalizadas",]"""
