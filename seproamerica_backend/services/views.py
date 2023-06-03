@@ -632,6 +632,10 @@ class PhoneAccountOrderView (APIView):
             return Response({'message': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
         
 class OrderReportView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_reportepedido",]
+    
     def post(self, request):
         serializer = OrderReportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -15,12 +15,12 @@ class MassiveNotifications(models.Model): # para el topic 'cliente'
     url_img = models.URLField(null=True, blank=True)
     title = models.CharField(max_length=255)
     message = models.TextField()
+    last_time_sended = models.DateTimeField(null=True, blank=True)
 
 class OrderClientNotification(models.Model):
     title = models.CharField(max_length=255)
     message = models.TextField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    last_time_sended = models.DateTimeField(null=True, blank=True)
 
 class OrderAdminNotification(models.Model): # para el topic 'administrador'
     title = models.CharField(max_length=255)
