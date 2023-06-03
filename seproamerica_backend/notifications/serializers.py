@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TokenFCM, OrderClientNotification
+from .models import TokenFCM, OrderClientNotification, OrderAdminNotification
 
 class TokenFCMSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,4 +10,9 @@ class TokenFCMSerializer(serializers.ModelSerializer):
 class OrderClientNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderClientNotification
+        fields = '__all__'
+
+class OrderAdminNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderAdminNotification
         fields = '__all__'

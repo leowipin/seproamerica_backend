@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from .models import TokenFCM
-from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer
+from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer
 from firebase_admin import messaging
 
 
@@ -56,6 +56,28 @@ class OrderClientNotificationView(APIView):
         )
         response = messaging.send_multicast(message)
 
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class OrderAdminNotificationView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_orderadminnotification",]
+
+    def post(self, request):
+        serializer = OrderAdminNotificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        title = serializer.validated_data['title']
+        message = serializer.validated_data['message']
+
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=message
+            ),
+            topic='administrador',
+        )
+        response = messaging.send(message)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 #use FCM to send the notification... <- pribar luego de implementar el envio
 # otra vista para obtener las notificaciones (accion del cliente)
