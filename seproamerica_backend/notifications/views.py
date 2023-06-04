@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
-from .models import TokenFCM
-from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer
+from .models import TokenFCM, OrderClientNotification
+from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer
 from firebase_admin import messaging
 
 
@@ -40,8 +40,9 @@ class OrderClientNotificationView(APIView):
     def post(self, request):
         serializer = OrderClientNotificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-
+        saved_noti = serializer.save()
+        print(str(saved_noti.id))
+        
         user_id = serializer.validated_data['user'].id
         tokens = list(TokenFCM.objects.filter(user_id=user_id).values_list('token', flat=True))
         title = serializer.validated_data['title']
@@ -52,11 +53,14 @@ class OrderClientNotificationView(APIView):
                 title=title,
                 body=message
             ),
+            data={
+            'noti_id': str(saved_noti.id)
+            },
             tokens=tokens,
         )
         response = messaging.send_multicast(message)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Notificación enviada.'}, status=status.HTTP_201_CREATED)
     
 class OrderAdminNotificationView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -79,5 +83,17 @@ class OrderAdminNotificationView(APIView):
         )
         response = messaging.send(message)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class GetClientNotificationView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_orderclientnotification",]
+
+    def get(self, request):
+        user_id = request.user
+        notifications = OrderClientNotification.objects.filter(user=user_id)
+        serializer = ClientInfoNotificationSerializer(notifications, many=True)
+        return Response(serializer.data)
+
 #use FCM to send the notification... <- pribar luego de implementar el envio
 # otra vista para obtener las notificaciones (accion del cliente)

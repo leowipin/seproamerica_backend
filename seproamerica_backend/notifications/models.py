@@ -21,6 +21,7 @@ class MassiveNotifications(models.Model): # para el topic 'cliente'
 class OrderClientNotification(models.Model):
     title = models.CharField(max_length=255)
     message = models.TextField()
+    url_img = models.URLField(null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date_sended = models.DateField(default=date.today)
 
