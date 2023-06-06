@@ -84,10 +84,10 @@ class OrderAdminNotificationView(APIView):
         response = messaging.send(message)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-class GetClientNotificationsView(APIView):
+class ClientNotificationsView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ["view_orderclientnotification",]
+    required_permissions = ["view_orderclientnotification", "delete_orderclientnotification"]
 
     def get(self, request):
         user_id = request.user
@@ -95,6 +95,14 @@ class GetClientNotificationsView(APIView):
         serializer = ClientInfoNotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    def delete(self, request):
+        user_id = request.user
+        notifications = OrderClientNotification.objects.filter(user=user_id)
+        notifications.delete()
+        return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+#NO USADO    
 class GetSpecificNotificationView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
