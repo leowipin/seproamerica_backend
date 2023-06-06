@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from .models import TokenFCM, OrderClientNotification
-from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer
+from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer, OrderClientSpecificNotificationSerializer
 from firebase_admin import messaging
 
 
@@ -84,16 +84,27 @@ class OrderAdminNotificationView(APIView):
         response = messaging.send(message)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-class GetClientNotificationView(APIView):
+class GetClientNotificationsView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["view_orderclientnotification",]
 
     def get(self, request):
         user_id = request.user
-        notifications = OrderClientNotification.objects.filter(user=user_id)
+        notifications = OrderClientNotification.objects.filter(user=user_id).order_by('-date_sended')
         serializer = ClientInfoNotificationSerializer(notifications, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class GetSpecificNotificationView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_orderclientnotification",]
+    
+    def get(self, request):
+        notification_id = request.GET.get('id')
+        notification = OrderClientNotification.objects.get(id=notification_id)
+        serializer = OrderClientSpecificNotificationSerializer(notification)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 #use FCM to send the notification... <- pribar luego de implementar el envio
 # otra vista para obtener las notificaciones (accion del cliente)

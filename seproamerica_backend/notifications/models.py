@@ -1,8 +1,7 @@
 from django.db import models
 from django.conf import settings
-from users.models import Cliente
 from services.models import Pedido
-from datetime import date
+from datetime import datetime
 
 # Create your models here.
 
@@ -23,11 +22,11 @@ class OrderClientNotification(models.Model):
     message = models.TextField()
     url_img = models.URLField(null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    date_sended = models.DateField(default=date.today)
+    date_sended = models.DateTimeField(default=datetime.now)
 
 class OrderAdminNotification(models.Model): # para el topic 'administrador'
     title = models.CharField(max_length=255)
     message = models.TextField()
     order = models.ForeignKey(Pedido, on_delete=models.CASCADE)
-    date_sended = models.DateField(default=date.today)
+    date_sended = models.DateTimeField(default=datetime.now)
 
