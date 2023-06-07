@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
-from .models import TokenFCM, OrderClientNotification
-from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer, OrderClientSpecificNotificationSerializer
+from .models import TokenFCM, OrderClientNotification, OrderAdminNotification
+from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer, OrderClientSpecificNotificationSerializer, AdminInfoNotificationSerializer
 from firebase_admin import messaging
 
 
@@ -82,7 +82,7 @@ class OrderAdminNotificationView(APIView):
             topic='administrador',
         )
         response = messaging.send(message)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Notificación enviada.'}, status=status.HTTP_201_CREATED)
     
 class ClientNotificationsView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -100,6 +100,21 @@ class ClientNotificationsView(APIView):
         notifications = OrderClientNotification.objects.filter(user=user_id)
         notifications.delete()
         return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+
+class AdminNotificationsView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_orderadminnotification", "delete_orderadminnotification"]
+
+    def get(self, request):
+        notifications = OrderAdminNotification.objects.all().order_by('-date_sended')
+        serializer = AdminInfoNotificationSerializer(notifications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request):
+        notifications = OrderAdminNotification.objects.all()
+        notifications.delete()
+        return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
     
 
 #NO USADO    
@@ -113,6 +128,3 @@ class GetSpecificNotificationView(APIView):
         notification = OrderClientNotification.objects.get(id=notification_id)
         serializer = OrderClientSpecificNotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#use FCM to send the notification... <- pribar luego de implementar el envio
-# otra vista para obtener las notificaciones (accion del cliente)

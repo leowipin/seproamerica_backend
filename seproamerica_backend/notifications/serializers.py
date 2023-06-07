@@ -6,7 +6,6 @@ class TokenFCMSerializer(serializers.ModelSerializer):
         model = TokenFCM
         fields = '__all__'
 
-
 class OrderClientNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderClientNotification
@@ -16,6 +15,11 @@ class ClientInfoNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderClientNotification
         fields = ('id', 'title', 'message', 'url_img', 'date_sended')
+
+class AdminInfoNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderAdminNotification
+        fields = ('id', 'title', 'message', 'order', 'date_sended')
 
 class OrderClientSpecificNotificationSerializer(serializers.ModelSerializer):
     class Meta:
