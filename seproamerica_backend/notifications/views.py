@@ -5,6 +5,8 @@ from users.authentication import JWTAuthentication, HasRequiredPermissions
 from .models import TokenFCM, OrderClientNotification, OrderAdminNotification
 from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer, OrderClientSpecificNotificationSerializer, AdminInfoNotificationSerializer
 from firebase_admin import messaging
+from firebase_admin import firestore
+
 
 
 # Create your views here.
@@ -41,9 +43,22 @@ class OrderClientNotificationView(APIView):
         serializer = OrderClientNotificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         saved_noti = serializer.save()
-        print(str(saved_noti.id))
         
         user_id = serializer.validated_data['user'].id
+
+        #in-app notification
+        db = firestore.client()
+        user_ref = db.collection('notificaciones').document(str(user_id))
+
+        notification = {
+            'title': title,
+            'message': message
+        }
+        user_ref.update({
+            'notifications': firestore.ArrayUnion([notification])
+        })
+
+        #push notification
         tokens = list(TokenFCM.objects.filter(user_id=user_id).values_list('token', flat=True))
         title = serializer.validated_data['title']
         message = serializer.validated_data['message']
@@ -128,3 +143,24 @@ class GetSpecificNotificationView(APIView):
         notification = OrderClientNotification.objects.get(id=notification_id)
         serializer = OrderClientSpecificNotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+"""class PostInAppNoti(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        title = request.data.get('title')
+        message = request.data.get('message')
+        user_id = request.data.get('user')
+
+        db = firestore.client()
+        user_ref = db.collection('notificaciones').document(str(user_id))
+
+        notification = {
+            'title': title,
+            'message': message
+        }
+        user_ref.update({
+            'notifications': firestore.ArrayUnion([notification])
+        })
+        return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_200_OK)
+"""

@@ -7,6 +7,6 @@ urlpatterns = [
     path('orderAdminNoti/', OrderAdminNotificationView.as_view(), name='orderadminnoti'),
     path('clientNoti/', ClientNotificationsView.as_view(), name='clientnoti'),
     path('adminNoti/', AdminNotificationsView.as_view(), name='adminnoti'),
-
+    #path('inAppNoti/', PostInAppNoti.as_view(), name='inappnoti'),
     path('getSpecificClientNoti/', GetSpecificNotificationView.as_view(), name='getclientspecificnoti'),#no usado
 ]
