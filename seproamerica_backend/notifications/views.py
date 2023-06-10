@@ -49,6 +49,8 @@ class OrderClientNotificationView(APIView):
         #in-app notification
         db = firestore.client()
         user_ref = db.collection('notificaciones').document(str(user_id))
+        title = serializer.validated_data['title']
+        message = serializer.validated_data['message']
 
         notification = {
             'title': title,
@@ -60,8 +62,6 @@ class OrderClientNotificationView(APIView):
 
         #push notification
         tokens = list(TokenFCM.objects.filter(user_id=user_id).values_list('token', flat=True))
-        title = serializer.validated_data['title']
-        message = serializer.validated_data['message']
 
         message = messaging.MulticastMessage(
             notification=messaging.Notification(
