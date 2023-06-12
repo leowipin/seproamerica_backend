@@ -18,10 +18,13 @@ class FCMTokenView(APIView):
     def post(self, request):
         user_id = request.user
         data = request.data.copy()
+        admin = data.get('administrador')
+        token = data.get('token')
+        if admin=="administrador":
+            response = messaging.subscribe_to_topic([token], 'administrador')
         data['user'] = user_id
         serializer = TokenFCMSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        token = data.get('token')
         if TokenFCM.objects.filter(token=token, user=user_id).exists():
             return Response({'message': 'El token ya está registrado para este usuario.'}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
