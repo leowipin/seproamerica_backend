@@ -282,7 +282,7 @@ class OrderClientView(APIView):
             serializerPedidoEquipamiento.is_valid(raise_exception=True)
             serializerPedidoEquipamiento.save()
 
-        return Response({'message': 'Pedido recibido'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Pedido recibido', 'order_id':order.id}, status=status.HTTP_200_OK)
     
     def get(self, request):
         order_id = request.GET.get('id')

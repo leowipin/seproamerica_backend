@@ -18,7 +18,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.exceptions import NotFound
 from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password, check_password
-
+from firebase_admin import firestore
 
 
 
@@ -580,6 +580,12 @@ class VerifyEmail(APIView):
             user.save()
             verification_token.delete()
             context = {'title': 'Verificación de correo', 'message': 'Verificación exitosa! Tu solicitud ha sido procesada correctamente.'}
+
+            # una vez registrado el cliente se crea el canal de mensajeria con el administrador
+            #db = firestore.client()
+            #doc_ref = db.collection('mensajeria').document(user.id)
+            #doc_ref.set({})
+
             return render(request, 'verificationResult.html', context)
         except TokenVerificacion.DoesNotExist:
             context = {'title': 'Verificación de correo', 'message': 'Verificación fallida. Lo sentimos, Tu solicitud no ha sido procesada correctamente.'}
