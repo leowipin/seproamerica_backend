@@ -112,4 +112,4 @@ class PhoneAccountPedidoSerializer(serializers.ModelSerializer):
 class OrderReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportePedido
-        fields = ('order', 'report')
+        fields = '__all__'

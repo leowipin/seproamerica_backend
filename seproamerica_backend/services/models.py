@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from users.models import Cargo, PersonalOperativo, Cliente, CuentaTelefono, Empresa
 from equipment.models import Equipamiento
 from datetime import datetime
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 User = get_user_model()
 
@@ -104,6 +106,10 @@ class EquipamientoAsignado(models.Model):
 class ReportePedido(models.Model):
     order = models.OneToOneField(Pedido, on_delete=models.CASCADE)
     report = models.TextField()
+    client_rating = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], null=True)
+    service_rating = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], null=True)
+    other_rating1 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], null=True)
+    other_rating2 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], null=True)
 
 class Facturacion(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True)
