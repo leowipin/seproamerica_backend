@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from .models import TokenFCM, OrderClientNotification, OrderAdminNotification
-from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer, OrderClientSpecificNotificationSerializer, AdminInfoNotificationSerializer
+from .serializers import TokenFCMSerializer, OrderClientNotificationSerializer, OrderAdminNotificationSerializer, ClientInfoNotificationSerializer, AdminInfoNotificationSerializer
 from firebase_admin import messaging
 from firebase_admin import firestore
 
@@ -133,37 +133,3 @@ class AdminNotificationsView(APIView):
         notifications = OrderAdminNotification.objects.all()
         notifications.delete()
         return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
-    
-
-#NO USADO    
-class GetSpecificNotificationView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [HasRequiredPermissions]
-    required_permissions = ["view_orderclientnotification",]
-    
-    def get(self, request):
-        notification_id = request.GET.get('id')
-        notification = OrderClientNotification.objects.get(id=notification_id)
-        serializer = OrderClientSpecificNotificationSerializer(notification)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-"""class PostInAppNoti(APIView):
-    authentication_classes = [JWTAuthentication]
-
-    def post(self, request):
-        title = request.data.get('title')
-        message = request.data.get('message')
-        user_id = request.data.get('user')
-
-        db = firestore.client()
-        user_ref = db.collection('notificaciones').document(str(user_id))
-
-        notification = {
-            'title': title,
-            'message': message
-        }
-        user_ref.update({
-            'notifications': firestore.ArrayUnion([notification])
-        })
-        return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_200_OK)
-"""

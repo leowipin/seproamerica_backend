@@ -21,11 +21,6 @@ class AdminInfoNotificationSerializer(serializers.ModelSerializer):
         model = OrderAdminNotification
         fields = ('id', 'title', 'message', 'order', 'date_sended')
 
-class OrderClientSpecificNotificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderClientNotification
-        fields = ('title', 'message', 'url_img')
-
 class OrderAdminNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderAdminNotification

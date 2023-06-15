@@ -9,5 +9,6 @@ urlpatterns = [
     path('services/', include('services.urls')),
     path('cardauth/', include('cardauth.urls')),
     path('notifications/', include('notifications.urls')),
+    path('messaging/', include('messaging.urls')),
     path('adminC/', TemplateView.as_view(template_name='static/adminC/index.html')),
 ]
