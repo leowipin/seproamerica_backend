@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cargo, Sucursal, Usuario, GroupType
+from .models import Cargo, Sucursal, Usuario, GroupType, ImagenesPerfil
 
 class ChargeAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'type')
@@ -14,8 +14,12 @@ class UserAdmin(admin.ModelAdmin):
 class GroupTypeAdmin(admin.ModelAdmin):
     list_display = ('id','type')
 
+class UserPictureAdmin(admin.ModelAdmin):
+    list_display = ('id','user', 'url_img')
+
 
 admin.site.register(Cargo, ChargeAdmin)
 admin.site.register(Sucursal, BranchAdmin)
 admin.site.register(Usuario, UserAdmin)
 admin.site.register(GroupType, GroupTypeAdmin)
+admin.site.register(ImagenesPerfil, UserPictureAdmin)

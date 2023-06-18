@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
-from .models import PersonalOperativo, PersonalAdministrativo, Cargo, Cliente, Sucursal, Usuario, CuentaTelefono, Empresa
+from .models import PersonalOperativo, PersonalAdministrativo, Cargo, Cliente, Sucursal, Usuario, CuentaTelefono, Empresa, ImagenesPerfil
 
 User = get_user_model()
 
@@ -79,6 +79,11 @@ class ClientNamesSerializer(serializers.ModelSerializer):
     class Meta:
         model= Usuario
         fields = ('first_name', 'last_name')
+
+class ProfilePictureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagenesPerfil
+        fields = '__all__'
 
 class PhoneNameSerializer(serializers.ModelSerializer):
     class Meta:

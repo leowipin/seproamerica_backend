@@ -1,9 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer, ProfilePictureSerializer
 from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
 from rest_framework import status
-from .models import TokenVerificacion
+from .models import TokenVerificacion, ImagenesPerfil
 from django.template.loader import render_to_string
 from seproamerica_backend import settings
 from django.core.mail import EmailMessage
@@ -127,6 +127,30 @@ class ClientNamesView(APIView):
         user = self.get_client(user_id)
         serializer = ClientNamesSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class ProfilePictureView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        user_id = request.user
+        data = {
+            'user': user_id,
+            'url_img': request.data.get('url_img')
+        }
+        serializer = ProfilePictureSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message':'Imagen guardada correctamente.'}, status=status.HTTP_201_CREATED)
+    
+    def delete(self, request):
+        user_id = request.user
+        try:
+            profile_pic = ImagenesPerfil.objects.get(user=user_id)
+            profile_pic.delete()
+            return Response({'message':'Imagen eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+        except ImagenesPerfil.DoesNotExist:
+            return Response({'message':'Imagen no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
     
 
 class PhoneNameView(APIView):
