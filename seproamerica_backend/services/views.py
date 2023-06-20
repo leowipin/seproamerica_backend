@@ -466,7 +466,7 @@ class OrderClientNamesView (APIView):
     def get(self, request):
         user_id = request.user
         client = Cliente.objects.get(user_id=user_id)
-        pedidos = Pedido.objects.filter(client=client.id).exclude(status__in=['eliminado'])
+        pedidos = Pedido.objects.filter(client=client.id).exclude(status__in=['eliminado']).order_by('-date_request')
         serializer = OrderNamesSerializer(pedidos, many=True)
         return Response(data=serializer.data, status=200)
     
@@ -476,7 +476,7 @@ class OrderAllView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.all()
+        orders = Pedido.objects.all().order_by('-date_request')
         serializer = OrderAllSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -486,7 +486,7 @@ class OrderListRestView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.all().exclude(status__in=['pendiente', 'en proceso'])
+        orders = Pedido.objects.all().exclude(status__in=['pendiente', 'en proceso']).order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -496,7 +496,7 @@ class OrderPendingView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='pendiente')
+        orders = Pedido.objects.filter(status='pendiente').order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -506,7 +506,7 @@ class OrderAcceptedView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='aceptado')
+        orders = Pedido.objects.filter(status='aceptado').order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -516,7 +516,7 @@ class OrderPaidView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='pagado')
+        orders = Pedido.objects.filter(status='pagado').order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -526,7 +526,7 @@ class OrderProcessView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='en proceso')
+        orders = Pedido.objects.filter(status='en proceso').order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -536,7 +536,7 @@ class OrderDeletedView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='eliminado')
+        orders = Pedido.objects.filter(status='eliminado').order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -546,7 +546,7 @@ class OrderEndedView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='finalizado')
+        orders = Pedido.objects.filter(status='finalizado').order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -556,7 +556,7 @@ class OrderRefundView (APIView):
     required_permissions = ["view_pedido",]
 
     def get(self, request):
-        orders = Pedido.objects.filter(status='reembolsado')
+        orders = Pedido.objects.filter(status='reembolsado').order_by('-date_request')
         serializer = OrderRestSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     

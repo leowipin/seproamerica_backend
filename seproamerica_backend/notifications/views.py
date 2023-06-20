@@ -117,7 +117,22 @@ class ClientNotificationsView(APIView):
         user_id = request.user
         notifications = OrderClientNotification.objects.filter(user=user_id)
         notifications.delete()
-        return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Notificaciones eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+    
+class ClientNotificationDeleteView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["delete_orderclientnotification"]
+    
+    def delete(self, request):
+        noti_id = request.GET.get('id')
+        try:
+            notification = OrderAdminNotification.objects.get(id=noti_id)
+            notification.delete()
+            return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+        except OrderAdminNotification.DoesNotExist:
+            return Response({'error': 'Notificación no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class AdminNotificationsView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -132,4 +147,18 @@ class AdminNotificationsView(APIView):
     def delete(self, request):
         notifications = OrderAdminNotification.objects.all()
         notifications.delete()
-        return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Notificaciones eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+    
+class AdminNotificationDeleteView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["delete_orderadminnotification"]
+
+    def delete(self, request):
+        noti_id = request.GET.get('id')
+        try:
+            notification = OrderAdminNotification.objects.get(id=noti_id)
+            notification.delete()
+            return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+        except OrderAdminNotification.DoesNotExist:
+            return Response({'error': 'Notificación no encontrada.'}, status=status.HTTP_404_NOT_FOUND)

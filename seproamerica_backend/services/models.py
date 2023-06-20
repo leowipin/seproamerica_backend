@@ -49,12 +49,13 @@ class Pedido(models.Model):
     client = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     service = models.ForeignKey(Servicio, on_delete=models.CASCADE)
     phone_account = models.ForeignKey(CuentaTelefono, on_delete=models.CASCADE, null=True)
-    date_request = models.DateField()
+    date_request = models.DateTimeField(default=datetime.now)
     start_date = models.DateField()
     start_time = models.TimeField()
     end_date = models.DateField(null=True)
     end_time = models.TimeField(null=True)
     duration = models.DecimalField(max_digits=4, decimal_places=1, null=True) #hour
+    km_distance = models.DecimalField(max_digits=6, decimal_places=3, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=100)
     STATUS_CHOICES = [
