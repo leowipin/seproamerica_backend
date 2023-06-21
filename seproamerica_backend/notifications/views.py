@@ -123,11 +123,11 @@ class ClientNotificationDeleteView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
     required_permissions = ["delete_orderclientnotification"]
-    
+
     def delete(self, request):
         noti_id = request.GET.get('id')
         try:
-            notification = OrderAdminNotification.objects.get(id=noti_id)
+            notification = OrderClientNotification.objects.get(id=noti_id)
             notification.delete()
             return Response({'message': 'Notificación eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
         except OrderAdminNotification.DoesNotExist:
