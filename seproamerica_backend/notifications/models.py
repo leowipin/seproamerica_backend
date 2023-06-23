@@ -10,12 +10,20 @@ class TokenFCM(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
-class MassiveNotifications(models.Model): # para el topic 'cliente'
+class MassiveNotifications(models.Model):
     name = models.CharField(max_length=124, unique=True)
     url_img = models.URLField(null=True, blank=True)
     title = models.CharField(max_length=255)
     message = models.TextField()
     last_time_sended = models.DateTimeField(null=True, blank=True)
+
+class MassiveScheduledNotifications(models.Model):
+    name = models.CharField(max_length=124, unique=True)
+    url_img = models.URLField(null=True, blank=True)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    scheduled_date = models.DateTimeField(null=True, blank=True)
+    is_birthdate = models.BooleanField()
 
 class OrderClientNotification(models.Model):
     title = models.CharField(max_length=255)
