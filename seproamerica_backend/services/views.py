@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer, OrderStatusSerializer, PhoneAccountPedidoSerializer, OrderReportSerializer
+from .serializers import ServiceSerializer, ServiceStaffSerializer, ServiceEquipmentSerializer, ServiceInfoSerializer, ServiceNamesSerializer, OrderSerializer, OrderStaffSerializer, OrderEquipmentSerializer, OrderNamesSerializer, OrderPutSerializer, AssignedStaffSerializer, AssignedEquipmentSerializer, OrderAllSerializer, OrderRestSerializer, BillingSerializer, OrderStatusSerializer, PhoneAccountPedidoSerializer, OrderReportSerializer, OperationalInfoSerializer
 from users.models import Cargo, Cliente, PersonalOperativo, CuentaTelefono, Empresa
 from services.models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado, Facturacion
 from equipment.models import Equipamiento
@@ -665,3 +665,15 @@ class PhoneAccountOrders(APIView):
         pedidos = Pedido.objects.filter(phone_account=phone_account.id)
         serializer = OrderAllSerializer(pedidos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class LeaderStaff(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_personaloperativo",]
+
+    def get(self, request):
+        order_id = request.GET.get('id')
+        personal_asignado = PersonalAsignado.objects.get(order_id=order_id, is_leader=True)
+        serializer = OperationalInfoSerializer(personal_asignado.operational_staff)
+        data = serializer.data
+        return Response(data, status=status.HTTP_200_OK)

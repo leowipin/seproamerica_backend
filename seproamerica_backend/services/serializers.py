@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Servicio, ServicioTipoPersonal, ServicioTipoEquipamiento, Pedido, PedidoPersonal, PedidoEquipamiento, PersonalAsignado, EquipamientoAsignado, Facturacion, ReportePedido
-from users.models import Cargo
+from users.models import Cargo, Sucursal, Usuario, PersonalOperativo
+
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -113,3 +114,15 @@ class OrderReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportePedido
         fields = '__all__'
+
+class OperationalInfoSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+    email = serializers.EmailField(source='user.email')
+    dni = serializers.CharField(source='user.dni')
+    url_img = serializers.CharField(source='user.imagenesperfil.url_img')
+    phone_number = serializers.CharField(source='user.phone_number')
+
+    class Meta:
+        model = PersonalOperativo
+        fields = ('first_name', 'last_name', 'email', 'dni','url_img','phone_number',)
