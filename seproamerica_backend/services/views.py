@@ -653,3 +653,15 @@ class OrderReportView(APIView):
         order.save()
         serializer.save()
         return Response({'message': 'Reporte finalizado exitosamente.'}, status=status.HTTP_201_CREATED)
+    
+class PhoneAccountOrders(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["view_pedido",]
+
+    def get(self, request):
+        user_id = request.user
+        phone_account = CuentaTelefono.objects.get(user_id=user_id)
+        pedidos = Pedido.objects.filter(phone_account=phone_account.id)
+        serializer = OrderAllSerializer(pedidos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
