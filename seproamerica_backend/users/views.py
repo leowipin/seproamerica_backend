@@ -11,7 +11,7 @@ import secrets
 from django.shortcuts import render
 from users.authentication import JWTAuthentication, HasRequiredPermissions
 from django.db import transaction
-from users.utils import generate_token, perms_englishtospanish, perms_spanishtoenglish
+from users.utils import generate_token, perms_englishtospanish, perms_spanishtoenglish, upload_img
 from django.contrib.auth.models import Permission, Group
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
@@ -20,7 +20,7 @@ from django.db import IntegrityError
 from django.contrib.auth.hashers import make_password, check_password
 from firebase_admin import firestore
 from datetime import datetime
-
+from firebase_admin import storage
 
 
 User = get_user_model()
@@ -55,7 +55,6 @@ class SignUpView(APIView):
                 try:
                     email.send()
                 except Exception as e:
-                    print(e)
                     return Response({'message': 'Error al enviar el email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 user.save()
                 return Response({'message': 'Email de verificación enviado'}, status=status.HTTP_200_OK)
@@ -82,7 +81,7 @@ class ClientSignInView(APIView):
             "token": token
         }, status=status.HTTP_200_OK)
 
-class ClientView(APIView): # view for the actions that the client can perform for their own data. get, delete and put
+class ClientView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def get_client(self, user_id):
@@ -97,11 +96,14 @@ class ClientView(APIView): # view for the actions that the client can perform fo
     def put(self, request):
         user_id = request.user
         user = self.get_client(user_id)
+        img_modified = False
+        url_img = request.data.get('url_img')
+        img_modified = upload_img(user_id, user, request, url_img, img_modified) 
         serializer = ClientUpdateSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'message': 'Datos modificados correctamente'}, status=status.HTTP_200_OK)
-    
+        return Response({'message': f'Datos modificados correctamente. {img_modified}'}, status=status.HTTP_200_OK)
+
     def delete(self, request):
         user_id = request.user
         user = self.get_client(user_id)
@@ -132,25 +134,29 @@ class ClientNamesView(APIView):
 class ProfilePictureView(APIView):
     authentication_classes = [JWTAuthentication]
 
-    def post(self, request):
-        user_id = request.user
-        data = {
-            'user': user_id,
-            'url_img': request.data.get('url_img')
-        }
-        serializer = ProfilePictureSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'message':'Imagen guardada correctamente.'}, status=status.HTTP_201_CREATED)
-    
     def delete(self, request):
+        # Obtener el ID del usuario autenticado
         user_id = request.user
+        authenticated_user = User.objects.get(id=user_id)
+
+        # Verificar si el objeto request contiene un campo id
+        if request.GET.get('id') is not None:
+            if not authenticated_user.is_admin:
+                return Response({'message': 'No tienes permiso para realizar esta acción'}, status=status.HTTP_403_FORBIDDEN)
+            user_id = request.GET.get('id')
+
         try:
-            profile_pic = ImagenesPerfil.objects.get(user=user_id)
-            profile_pic.delete()
-            return Response({'message':'Imagen eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+            # Eliminar la entrada correspondiente en el modelo ImagenesPerfil
+            profile_picture = ImagenesPerfil.objects.get(user_id=user_id)
+            profile_picture.delete()
+            # Eliminar la imagen de perfil del usuario de Firebase Storage
+            bucket = storage.bucket('seproamerica-858ec.appspot.com')
+            blob = bucket.blob(f'profilePictures/{user_id}')
+            blob.delete()
         except ImagenesPerfil.DoesNotExist:
-            return Response({'message':'Imagen no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'No se encontró una imagen de perfil'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'message': 'Imagen eliminada correctamente'}, status=status.HTTP_204_NO_CONTENT)
     
 
 class PhoneNameView(APIView):
@@ -375,28 +381,29 @@ class OperationalView(APIView):
         
     def put(self, request):
         user_id = request.data.get('id')
+        authenticated_user = User.objects.get(id=request.user)
         try:
             user = Usuario.objects.get(id=user_id)
         except Usuario.DoesNotExist:
             return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         user_serializer = OperationalPutSerializer(user, data=request.data)
-        if user_serializer.is_valid():
-            user = user_serializer.save()
-            request.data['user'] = user.id
-            try:
-                personal_operative = PersonalOperativo.objects.get(user_id=user_id)
-            except PersonalOperativo.DoesNotExist:
-                return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-            
-            operative_serializer = OperationalStaffSerializer(personal_operative, data=request.data)
-            if operative_serializer.is_valid():
-                opUser = operative_serializer.save()
-                return Response({'message': 'Empleado actualizado con éxito'}, status=status.HTTP_200_OK)
-            else:
-                return Response(operative_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_serializer.is_valid(raise_exception=True)
+        user = user_serializer.save()
+        request.data['user'] = user.id
+        try:
+            personal_operative = PersonalOperativo.objects.get(user_id=user_id)
+        except PersonalOperativo.DoesNotExist:
+            return Response({'message': 'Empleado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        operative_serializer = OperationalStaffSerializer(personal_operative, data=request.data)
+        operative_serializer.is_valid(raise_exception=True)
+        opUser = operative_serializer.save()
+
+        url_img = request.data.get('url_img')
+        img_modified = False
+        img_modified = upload_img(user_id, authenticated_user, request, url_img, img_modified)
+
+        return Response({'message': f'Empleado actualizado correctamente. {img_modified}'}, status=status.HTTP_200_OK)
 
 
 
@@ -799,7 +806,6 @@ class PasswordReset(APIView):
         try:
             email.send()
         except Exception as e:
-            print(e)
             return Response({'message': 'Error al enviar el correo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Correo para restablecimiento de contraseña enviado'}, status=status.HTTP_200_OK)
 
@@ -858,7 +864,6 @@ class ChangeEmail(APIView):
         try:
             email.send()
         except Exception as e:
-            print(e)
             return Response({'message': 'Error al enviar el correo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Correo enviado'}, status=status.HTTP_200_OK)
     
@@ -925,7 +930,6 @@ class ChangeNewPassword(APIView):
         try:
             email.send()
         except Exception as e:
-            print(e)
             return Response({'message': 'Error al enviar el correo'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'message': 'Correo enviado'}, status=status.HTTP_200_OK)
 

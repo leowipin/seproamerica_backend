@@ -30,7 +30,7 @@ class Cliente(models.Model):
 
 class ImagenesPerfil(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    url_img = models.CharField(max_length=100)
+    url_img = models.TextField(null=True, blank=True)
 
 class CuentaTelefono(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

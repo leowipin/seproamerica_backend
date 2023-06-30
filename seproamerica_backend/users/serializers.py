@@ -71,9 +71,11 @@ class ClientPutSerializer(serializers.ModelSerializer):
 # serializer needed to manage the data that a client can modify about himself
 class ClientUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
+    url_img = serializers.CharField(source='imagenesperfil.url_img', read_only=True)
     class Meta:
         model = Usuario
-        fields = ('first_name', 'last_name', 'dni', 'phone_number', 'birthdate', 'address', 'gender', 'email')
+        fields = ('first_name', 'last_name', 'dni', 'phone_number', 'birthdate', 'address', 'gender', 'email', 'url_img')
+    
 
 class ClientNamesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -232,6 +234,7 @@ class OperationalInfoSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
     dni = serializers.CharField(source='user.dni')
+    url_img = serializers.CharField(source='user.imagenesperfil.url_img')
     birthdate = serializers.DateField(source='user.birthdate')
     gender = serializers.CharField(source='user.gender')
     address = serializers.CharField(source='user.address')
@@ -243,7 +246,7 @@ class OperationalInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PersonalOperativo
-        fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'date_joined', 'start_date', 'final_date', 'charge', 'branch', 'created_by')
+        fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'url_img', 'gender', 'address', 'phone_number', 'date_joined', 'start_date', 'final_date', 'charge', 'branch', 'created_by')
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
