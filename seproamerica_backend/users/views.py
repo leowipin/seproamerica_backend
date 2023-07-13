@@ -252,6 +252,7 @@ class AdminView(APIView):
     
     def put(self, request):
         user_id = request.data.get('id')
+        authenticated_user = User.objects.get(id=request.user)
         try:
             user = Usuario.objects.get(id=user_id)
         except Usuario.DoesNotExist:
@@ -269,22 +270,23 @@ class AdminView(APIView):
         hashed_password = make_password(request.data.get('password'))
         request.data['password'] = hashed_password
         user_serializer = AdminPutSerializer(user, data=request.data)
-        if user_serializer.is_valid():
-            user = user_serializer.save()
-            request.data['user'] = user.id
-            try:
-                personal_admin = PersonalAdministrativo.objects.get(user_id=user_id)
-            except PersonalAdministrativo.DoesNotExist:
-                return Response({'message': 'Personal administrativo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-            
-            admin_serializer = AdminStaffSerializer(personal_admin, data=request.data)
-            if admin_serializer.is_valid():
-                adminUser = admin_serializer.save()
-                return Response({'message': 'Personal administrativo actualizado con éxito'}, status=status.HTTP_200_OK)
-            else:
-                return Response(admin_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_serializer.is_valid(raise_exception=True)
+        user = user_serializer.save()
+        request.data['user'] = user.id
+        try:
+            personal_admin = PersonalAdministrativo.objects.get(user_id=user_id)
+        except PersonalAdministrativo.DoesNotExist:
+            return Response({'message': 'Personal administrativo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        admin_serializer = AdminStaffSerializer(personal_admin, data=request.data)
+        admin_serializer.is_valid(raise_exception=True)
+        adminUser = admin_serializer.save()
+
+        url_img = request.data.get('url_img')
+        img_modified = False
+        img_modified = upload_img(user_id, authenticated_user, request, url_img, img_modified)
+
+        return Response({'message': f'Personal administrativo actualizado con éxito {img_modified}'}, status=status.HTTP_200_OK)
 
 
 class AdminListView(APIView):

@@ -205,6 +205,7 @@ class AdminInfoSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
     dni = serializers.CharField(source='user.dni')
+    url_img = serializers.CharField(source='user.imagenesperfil.url_img')
     birthdate = serializers.DateField(source='user.birthdate')
     gender = serializers.CharField(source='user.gender')
     address = serializers.CharField(source='user.address')
@@ -218,7 +219,7 @@ class AdminInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PersonalAdministrativo
-        fields = ('id','first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'is_active', 'date_joined', 'start_date', 'final_date', 'charge', 'branch','group')
+        fields = ('id','first_name', 'last_name', 'email', 'dni', 'url_img', 'birthdate', 'gender', 'address', 'phone_number', 'is_active', 'date_joined', 'start_date', 'final_date', 'charge', 'branch','group')
 
 
 class OperationalStaffSerializer(serializers.ModelSerializer):
