@@ -170,6 +170,7 @@ class ClientSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
     dni = serializers.CharField(source='user.dni')
+    url_img = serializers.CharField(source='user.imagenesperfil.url_img')
     birthdate = serializers.DateField(source='user.birthdate')
     gender = serializers.CharField(source='user.gender')
     address = serializers.CharField(source='user.address')
@@ -181,7 +182,7 @@ class ClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cliente
-        fields = ('id', 'first_name', 'last_name', 'email', 'dni', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'is_active', 'date_joined', 'group')
+        fields = ('id', 'first_name', 'last_name', 'email', 'dni', 'url_img', 'birthdate', 'gender', 'address', 'phone_number', 'isVerified', 'is_active', 'date_joined', 'group')
 
 
 class ClientSignUpSerializer(serializers.ModelSerializer):
