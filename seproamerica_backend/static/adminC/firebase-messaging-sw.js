@@ -1,3 +1,4 @@
+
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
@@ -34,9 +35,18 @@ messaging.onBackgroundMessage(function (payload) {
     '[firebase-messaging-sw.js] Received background message ',
     payload
   );
-  self.registration.showNotification(notificationTitle, notificationOptions);
 
+  notificationTitle = payload.notification.title;
+  notificationOptions = {
+    body: payload.notification.body,
+    icon: "https://www.seproamerica.com.ec/wp-content/uploads/2019/07/Seproamerica-privada-y-electronica-grande-logo-seguridad-ecuador.png",
+  };
+
+ 
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+
 
 // messaging = firebase.messaging.isSupported() ? firebase.messaging() : null;
 
