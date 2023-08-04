@@ -621,8 +621,8 @@ class VerifyEmail(APIView):
             doc_ref = db.collection('mensajeria').document(str(user.id))
             doc_data = {
                 'rol': 'administrador',
-                'fecha_ultimo_mensaje': None,
-                'ultimo_mensaje':None
+                'fecha_ultimo_mensaje': datetime.now(),
+                'ultimo_mensaje':f'¡Hola {first_name}! Bienvenido a Seproamérica. Si tienes alguna consulta, no dudes en hacerla aquí. Estamos para ayudarte.'
             }
             doc_ref.set(doc_data)
             subcollection_ref = doc_ref.collection('mensajes')
