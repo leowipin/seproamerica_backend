@@ -12,7 +12,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'password', 'first_name', 'last_name', 'phone_number', 'dni', 'gender', 'address')
+        fields = ('email', 'password', 'first_name', 'last_name', 'phone_number', 'dni', 'gender', 'address', 'birthdate')
 
     def create(self, validated_data, group_name):
         group = Group.objects.get(name=group_name)

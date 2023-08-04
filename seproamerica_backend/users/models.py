@@ -10,7 +10,7 @@ class Usuario(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=False)
     dni = models.CharField(max_length=20, unique=True, default=None, null=True)
-    birthdate = models.DateField(default=date.today, null=True)
+    birthdate = models.DateField(null=True)
     GENDER_CHOICES = [
         ('masculino','masculino'),
         ('femenino','femenino'),
