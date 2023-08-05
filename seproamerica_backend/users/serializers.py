@@ -30,10 +30,21 @@ class SignInSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(**data)
-        if not user:
-            raise serializers.ValidationError('Correo o contraseña incorrectos')
+        email = data.get('email')
+        password = data.get('password')
+        if email == 'invitado@seproamerica.ec':
+            try:
+                user = User.objects.get(email=email)
+                if user.password != password:
+                    raise serializers.ValidationError('Correo o contraseña incorrectos')
+            except User.DoesNotExist:
+                raise serializers.ValidationError('Correo o contraseña incorrectos')
+        else:
+            user = authenticate(**data)
+            if not user:
+                raise serializers.ValidationError('Correo o contraseña incorrectos')
         return user
+
     
 class SignInPhoneAccountSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -254,3 +265,8 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Empresa
         fields = '__all__'
+
+class PolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Empresa
+        fields = ('policy',)

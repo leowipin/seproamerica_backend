@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer, ProfilePictureSerializer
-from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal
+from users.serializers import SignUpSerializer, GroupSerializer, AdminStaffSerializer, SignInSerializer, OperationalStaffSerializer, ClientSerializer, UserSerializer, AdminInfoSerializer, OperationalInfoSerializer, ClientSignUpSerializer, ClientPutSerializer, ClientUpdateSerializer, ClientNamesSerializer, PhoneAccountSerializer, PhoneInfoSerializer, PersonalSerializer, ChargeSerializer, BranchSerializer, PhoneNameSerializer, StaffSerializer, AdminPutSerializer, OperationalPutSerializer, CompanySerializer, PolicySerializer
+from users.models import Usuario,  Cliente, PersonalAdministrativo, PersonalOperativo, PasswordResetVerificacion, GroupType, CambioCorreo, CambioPassword, CuentaTelefono, Cargo, Sucursal, Empresa
 from rest_framework import status
 from .models import TokenVerificacion, ImagenesPerfil
 from django.template.loader import render_to_string
@@ -21,6 +21,8 @@ from django.contrib.auth.hashers import make_password, check_password
 from firebase_admin import firestore
 from datetime import datetime
 from firebase_admin import storage
+from django.shortcuts import get_object_or_404
+
 
 
 User = get_user_model()
@@ -83,6 +85,8 @@ class ClientSignInView(APIView):
 
 class ClientView(APIView):
     authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["add_pedido"]
 
     def get_client(self, user_id):
         return Usuario.objects.get(id=user_id)
@@ -247,7 +251,7 @@ class AdminView(APIView):
             data = serializer.data
             data['id'] = user_id
             return Response(data,  status=status.HTTP_200_OK)
-        except Cliente.DoesNotExist:
+        except PersonalAdministrativo.DoesNotExist:
             return Response({'message': 'Personal administrativo no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
     
     def put(self, request):
@@ -958,10 +962,37 @@ class VerifyNewPassword(APIView):
 class CompanyView (APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ["add_empresa",]
+    required_permissions = ["add_empresa", "change_empresa"]
 
     def post(self, request):
         serializer = CompanySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Información guardada correctamente'}, status=status.HTTP_200_OK)
+    
+    def get(self, request):
+        pk = request.GET.get('id')
+        if pk:
+            company = get_object_or_404(Empresa, pk=pk)
+            serializer = CompanySerializer(company)
+            return Response(serializer.data)
+        else:
+            companies = Empresa.objects.all()
+            serializer = CompanySerializer(companies, many=True)
+            return Response(serializer.data)
+        
+    def put(self, request):
+        pk = request.GET.get('id')
+        company = get_object_or_404(Empresa, pk=pk)
+        serializer = CompanySerializer(company, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Información actualizada correctamente'}, status=status.HTTP_200_OK)
+    
+class PolicyView(APIView):
+
+    def get(self, request):
+        pk = request.GET.get('id')
+        company = get_object_or_404(Empresa, pk=pk)
+        serializer = PolicySerializer(company)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -36,4 +36,5 @@ urlpatterns = [
     path('branchList/', BranchListView.as_view(), name='branchlist'),
     path('company/', CompanyView.as_view(), name='company'),
     path('userPicture/', ProfilePictureView.as_view(), name='userpicture'),
+    path('policy/', PolicyView.as_view(), name='policy'),
 ]
