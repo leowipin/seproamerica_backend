@@ -79,7 +79,7 @@ class OrderAllSerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source='service.name')
     class Meta:
         model = Pedido
-        fields = ('id', 'date_request', 'start_date', 'start_time', 'client_first_name', 'client_last_name', 'client_dni', 'service_name')
+        fields = ('id', 'date_request', 'start_date', 'start_time', 'client_first_name', 'client_last_name', 'client_dni', 'service_name', 'status', 'total')
 
 class OrderRestSerializer(serializers.ModelSerializer):
     client_first_name = serializers.CharField(source='client.user.first_name')

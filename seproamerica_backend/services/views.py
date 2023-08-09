@@ -617,26 +617,20 @@ class PhoneAccountOrderView (APIView):
     required_permissions = ["change_pedido", "view_pedido",]
 
     def get(self, request):
-        user_id = request.user
+        order_id = request.GET.get('id')
         try:
-            phone_account = CuentaTelefono.objects.get(user_id=user_id)
-            order = Pedido.objects.get(phone_account=phone_account)
-            if order.status == 'en proceso':
-                assigned_staff = PersonalAsignado.objects.get(order=order, is_leader=True)
-                operational_staff_id = assigned_staff.operational_staff_id
-                operational_staff = PersonalOperativo.objects.get(id=operational_staff_id)
-                user = operational_staff.user
-                first_name = user.first_name
-                last_name = user.last_name
-                serializer = PhoneAccountPedidoSerializer(order)
-                data = serializer.data
-                data['employee_first_name'] = first_name
-                data['employee_last_name'] = last_name
-                return Response(data, status=status.HTTP_200_OK)
-            else:
-                return Response({'message': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        except CuentaTelefono.DoesNotExist:
-            return Response({'message': 'Cuenta teléfono inexistente'}, status=status.HTTP_404_NOT_FOUND)
+            order = Pedido.objects.get(id=order_id)
+            assigned_staff = PersonalAsignado.objects.get(order=order, is_leader=True)
+            operational_staff_id = assigned_staff.operational_staff_id
+            operational_staff = PersonalOperativo.objects.get(id=operational_staff_id)
+            user = operational_staff.user
+            first_name = user.first_name
+            last_name = user.last_name
+            serializer = PhoneAccountPedidoSerializer(order)
+            data = serializer.data
+            data['employee_first_name'] = first_name
+            data['employee_last_name'] = last_name
+            return Response(data, status=status.HTTP_200_OK)
         except Pedido.DoesNotExist:
             return Response({'message': 'Servicio no encontrado'}, status=status.HTTP_404_NOT_FOUND)
         
