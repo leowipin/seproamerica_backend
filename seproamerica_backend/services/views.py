@@ -626,8 +626,10 @@ class PhoneAccountOrderView (APIView):
             user = operational_staff.user
             first_name = user.first_name
             last_name = user.last_name
+            employee_id = user.id
             serializer = PhoneAccountPedidoSerializer(order)
             data = serializer.data
+            data['employee_id'] = employee_id
             data['employee_first_name'] = first_name
             data['employee_last_name'] = last_name
             return Response(data, status=status.HTTP_200_OK)
