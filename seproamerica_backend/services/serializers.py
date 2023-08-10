@@ -108,7 +108,7 @@ class PhoneAccountPedidoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pedido
-        fields = ('id', 'service_name', 'start_date', 'start_time', 'end_date', 'end_time', 'client_first_name', 'client_last_name', 'client_phone_number', 'origin_lat', 'origin_lng', 'destination_lat', 'destination_lng', 'total')
+        fields = ('id', 'service_name', 'start_date', 'start_time', 'end_date', 'end_time', 'duration', 'client_first_name', 'client_last_name', 'client_phone_number', 'origin_lat', 'origin_lng', 'destination_lat', 'destination_lng', 'total')
 
 class OrderReportSerializer(serializers.ModelSerializer):
     class Meta:
