@@ -23,5 +23,5 @@ urlpatterns = [
     path('orderReport/', OrderReportView.as_view(), name='orderreport'),
     path('leaderStaff/', LeaderStaff.as_view(), name='leaderstaff'),
     path('startOrder/', StartOrderView.as_view(), name='startorder'),
-    path('endOrder/', StartOrderView.as_view(), name='endorder'),
+    path('endOrder/', EndOrderView.as_view(), name='endorder'),
 ]

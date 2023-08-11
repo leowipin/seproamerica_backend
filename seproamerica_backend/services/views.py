@@ -599,7 +599,7 @@ class EndOrderView (APIView):
             pedido = Pedido.objects.get(id=order_id)
             pedido.status = "finalizado"
             pedido.save()
-            return Response({'message': 'Pedido iniciado con éxito'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Pedido finalizado con éxito'}, status=status.HTTP_200_OK)
         except Pedido.DoesNotExist:
             return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
