@@ -575,6 +575,22 @@ class StatusChangeView (APIView):
         except Pedido.DoesNotExist:
             return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
+class StartOrderView (APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [HasRequiredPermissions]
+    required_permissions = ["change_pedido",]
+    def put(self, request):
+        order_id=request.GET.get('id')
+        try:
+            pedido = Pedido.objects.get(id=order_id)
+            pedido.status = "en proceso"
+            serializer = OrderStatusSerializer(pedido, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response({'message': 'Pedido iniciado con éxito'}, status=status.HTTP_200_OK)
+        except Pedido.DoesNotExist:
+            return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
 class BillingCreateView (APIView): #view used by the client
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]

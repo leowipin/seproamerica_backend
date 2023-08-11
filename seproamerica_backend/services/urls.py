@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ServiceView, ServiceNamesView, ServiceGetView, OrderClientView, OrderClientNamesView, OrderAllView, OrderListRestView, OrderPendingView, OrderAcceptedView, OrderPaidView, OrderProcessView, OrderDeletedView, OrderEndedView, OrderRefundView, BillingCreateView, StatusChangeView, PhoneAccountOrderView, OrderReportView, PhoneAccountOrders, LeaderStaff
+from .views import ServiceView, ServiceNamesView, ServiceGetView, OrderClientView, OrderClientNamesView, OrderAllView, OrderListRestView, OrderPendingView, OrderAcceptedView, OrderPaidView, OrderProcessView, OrderDeletedView, OrderEndedView, OrderRefundView, BillingCreateView, StatusChangeView, PhoneAccountOrderView, OrderReportView, PhoneAccountOrders, LeaderStaff, StartOrderView
 
 urlpatterns = [
     path('service/', ServiceView.as_view(), name='service'),
@@ -22,4 +22,5 @@ urlpatterns = [
     path('phoneAccountOrder/', PhoneAccountOrderView.as_view(), name='phoneaccountorder'),
     path('orderReport/', OrderReportView.as_view(), name='orderreport'),
     path('leaderStaff/', LeaderStaff.as_view(), name='leaderstaff'),
+    path('startOrder/', StartOrderView.as_view(), name='startorder'),
 ]
