@@ -584,9 +584,7 @@ class StartOrderView (APIView):
         try:
             pedido = Pedido.objects.get(id=order_id)
             pedido.status = "en proceso"
-            serializer = OrderStatusSerializer(pedido, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            pedido.save()
             return Response({'message': 'Pedido iniciado con éxito'}, status=status.HTTP_200_OK)
         except Pedido.DoesNotExist:
             return Response({'message': 'Pedido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
