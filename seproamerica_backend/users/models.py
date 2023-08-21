@@ -63,8 +63,10 @@ class Empresa(models.Model):
     ruc = models.CharField(max_length=20)
     policy = models.TextField()
     email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    address = models.CharField(max_length=100)
+    mobile_number = models.CharField(max_length=20, null=True, unique=True)
+    landline_number = models.CharField(max_length=20, null=True, unique=True)
+    web_page = models.CharField(max_length=100)
+    address = models.CharField(max_length=200)
 
 class Sucursal(models.Model):
     name = models.CharField(max_length=50, unique=True)

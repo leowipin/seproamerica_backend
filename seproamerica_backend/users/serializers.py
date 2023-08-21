@@ -264,7 +264,7 @@ class OperationalInfoSerializer(serializers.ModelSerializer):
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Empresa
-        fields = '__all__'
+        fields = ('name', 'ruc', 'email', 'mobile_number', 'landline_number', 'web_page', 'address')
 
 class PolicySerializer(serializers.ModelSerializer):
     class Meta:

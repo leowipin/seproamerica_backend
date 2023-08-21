@@ -984,7 +984,7 @@ class CompanyView (APIView):
     def put(self, request):
         pk = request.GET.get('id')
         company = get_object_or_404(Empresa, pk=pk)
-        serializer = CompanySerializer(company, data=request.data)
+        serializer = CompanySerializer(company, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Información actualizada correctamente'}, status=status.HTTP_200_OK)
@@ -996,3 +996,11 @@ class PolicyView(APIView):
         company = get_object_or_404(Empresa, pk=pk)
         serializer = PolicySerializer(company)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request):
+        pk = request.GET.get('id')
+        company = get_object_or_404(Empresa, pk=pk)
+        serializer = PolicySerializer(company, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
