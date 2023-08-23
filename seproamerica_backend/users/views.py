@@ -962,9 +962,16 @@ class VerifyNewPassword(APIView):
 class CompanyView (APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [HasRequiredPermissions]
-    required_permissions = ["add_empresa", "change_empresa"]
+    required_permissions = ["view_empresa"]
+
+    def get_client(self, user_id):
+        return Usuario.objects.get(id=user_id)
 
     def post(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        if not user.is_admin:
+            return Response({'message': 'No tienes permiso para realizar esta acción'}, status=status.HTTP_403_FORBIDDEN)
         serializer = CompanySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -982,12 +989,17 @@ class CompanyView (APIView):
             return Response(serializer.data)
         
     def put(self, request):
+        user_id = request.user
+        user = self.get_client(user_id)
+        if not user.is_admin:
+            return Response({'message': 'No tienes permiso para realizar esta acción'}, status=status.HTTP_403_FORBIDDEN)
         pk = request.GET.get('id')
         company = get_object_or_404(Empresa, pk=pk)
         serializer = CompanySerializer(company, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'message': 'Información actualizada correctamente'}, status=status.HTTP_200_OK)
+    
     
 class PolicyView(APIView):
 
