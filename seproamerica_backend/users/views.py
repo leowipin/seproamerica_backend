@@ -115,8 +115,7 @@ class ClientView(APIView):
         hashed_password = user.password
         if not check_password(password, hashed_password):
             return Response({'message': 'Contraseña incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
-        user.is_active = False
-        user.save()
+        user.delete()
         return Response({'message': 'Cuenta eliminada exitosamente.'}, status=status.HTTP_200_OK)
     
 
